@@ -1,2 +1,41 @@
+
 public class Chunk {
+    private String fileId;
+    private int chunkNo;
+    private int replicationDegree;
+    private int currentReplicationId;
+    private byte[] content;
+    private int size;
+
+    /**Constructor*/
+    public Chunk(String fileId, int chunkNo, byte[] content) {
+        this.fileId = fileId;
+        this.chunkNo = chunkNo;
+        this.content = content;
+    }
+
+    /**Getters*/
+    public String getFileId() {
+        return this.fileId;
+    }
+
+    public int getChunkNo() {
+        return this.chunkNo;
+    }
+
+    public int getReplicationDegree() {
+        return this.replicationDegree;
+    }
+
+    public int getCurrentReplicationId() {
+        return this.currentReplicationId;
+    }
+
+    public byte[] getContent() {
+        return this.content;
+    }
+
+    public int getSize() {
+        return this.size;
+    }
 }
