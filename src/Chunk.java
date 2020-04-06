@@ -7,14 +7,19 @@ public class Chunk {
     private byte[] content;
     private int size;
 
-    /**Constructor*/
-    public Chunk(String fileId, int chunkNo, byte[] content) {
+    /**
+     * Constructor
+     */
+    public Chunk(String fileId, int chunkNo, byte[] content, int replicationDegree) {
         this.fileId = fileId;
         this.chunkNo = chunkNo;
         this.content = content;
+        this.replicationDegree = replicationDegree;
     }
 
-    /**Getters*/
+    /**
+     * Getters
+     */
     public String getFileId() {
         return this.fileId;
     }

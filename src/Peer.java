@@ -6,12 +6,21 @@ import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.security.NoSuchAlgorithmException;
 
-public class Peer implements RMI{
+public class Peer implements RMI {
+    private int peerId;
+    private Storage storage;
 
-    int id;
-    /**Main*/
+    /**
+     * Constructor
+     */
+    Peer(int peerId) {
+        this.peerId = peerId;
+    }
+
+    /**
+     * Main
+     */
     public static void main(String[] args) throws RemoteException, AlreadyBoundException {
-
         Peer peer = new Peer(1);
         RMI sender = (RMI) UnicastRemoteObject.exportObject(peer, 0);
 
@@ -19,14 +28,26 @@ public class Peer implements RMI{
         registry.rebind("ououou", sender);
     }
 
-    Peer (int id){
-        this.id = id;
-    }
-
+    /**
+     * Other Methods
+     */
     @Override
     public String backup(String filePath, int replicationDegree) throws IOException, NoSuchAlgorithmException {
-
         FileData fileData = new FileData(filePath, replicationDegree);
+        storage.addFileData(fileData);
+
+        for (int i = 0; i < fileData.getChunks().size(); i++) {
+            Chunk chunk = fileData.getChunks().get(i);
+            String header = "1.0 PUTCHUNK" + this.peerId + " " + fileData.getFileId() + " " + chunk.getChunkNo() + replicationDegree + "\r\n\r\n";
+            //System.out.println(header);
+            byte[] encodedHeader = header.getBytes("US-ASCII");
+            byte[] body = chunk.getContent();
+            byte[] message = new byte[encodedHeader.length + body.length];
+            // concatenate encodedHeader with body
+            System.arraycopy(encodedHeader, 0, message, 0, encodedHeader.length);
+            System.arraycopy(body, 0, message, encodedHeader.length, body.length);
+            /**FALTA PARTE COM OS THREADS QUE AINDA N PERCEBI MT BEM, TBM TENHO DE VER MELHOR A PARTE DE MULTICAST E OS CHANNELS*/
+        }
 
         return "backup " + fileData.getFileId();
     }
