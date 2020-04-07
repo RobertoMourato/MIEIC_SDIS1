@@ -5,12 +5,12 @@ import java.net.MulticastSocket;
 
 abstract class Channel implements Runnable {
 
-    int peer;
+    Peer peer;
     MulticastSocket multicastSocket;
     int multicastPort;
     InetAddress multicastInetAddress;
 
-    Channel(int peer, String inet_address, int port) throws IOException {
+    Channel(Peer peer, String inet_address, int port) throws IOException {
         this.peer = peer;
         this.multicastPort = port;
         this.multicastSocket = new MulticastSocket(this.multicastPort);
@@ -24,6 +24,10 @@ abstract class Channel implements Runnable {
         DatagramPacket msgPacket = new DatagramPacket(message, message.length, multicastInetAddress, multicastPort);
         senderSocket.send(msgPacket);
 
+    }
+
+    void handleMessage(byte[] message){
+        this.peer.getExecutor().execute(new MessageHandler(message));
     }
 
 }

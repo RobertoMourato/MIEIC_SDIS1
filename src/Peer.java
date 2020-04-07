@@ -25,8 +25,8 @@ public class Peer implements RMI {
         executor = Executors.newScheduledThreadPool(150);
 
         try {
-            this.controlChannel = new ControlChannel( this.peerId, "224.0.1.0", 9998);
-            this.backupChannel = new BackupChannel( this.peerId, "224.0.0.1", 9999);
+            this.controlChannel = new ControlChannel( this, "224.0.1.0", 9998);
+            this.backupChannel = new BackupChannel( this, "224.0.0.1", 9999);
 
             executor.execute(this.controlChannel);
             executor.execute(this.backupChannel);
@@ -36,6 +36,14 @@ public class Peer implements RMI {
             System.out.println("Couldn't create channels for peer " + peerId );
         }
 
+    }
+
+    public int getPeerId() {
+        return peerId;
+    }
+
+    public ExecutorService getExecutor() {
+        return executor;
     }
 
     /**
@@ -64,7 +72,7 @@ public class Peer implements RMI {
 
         for (int i = 0; i < fileData.getChunks().size(); i++) {
             Chunk chunk = fileData.getChunks().get(i);
-            String header = "1.0 PUTCHUNK" + this.peerId + " " + fileData.getFileId() + " " + chunk.getChunkNo() + replicationDegree + "\r\n\r\n";
+            String header = "1.0 PUTCHUNK " + this.peerId + " " + fileData.getFileId() + " " + chunk.getChunkNo() + replicationDegree + "\r\n\r\n";
             //System.out.println(header);
             byte[] encodedHeader = header.getBytes(StandardCharsets.US_ASCII);
             byte[] body = chunk.getContent();

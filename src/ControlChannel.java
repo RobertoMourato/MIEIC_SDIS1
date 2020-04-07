@@ -4,7 +4,7 @@ import java.util.Arrays;
 
 public class ControlChannel extends Channel {
 
-    ControlChannel(int peer, String inet_address, int port) throws IOException {
+    ControlChannel(Peer peer, String inet_address, int port) throws IOException {
         super(peer, inet_address, port);
     }
 
@@ -23,6 +23,8 @@ public class ControlChannel extends Channel {
                 this.multicastSocket.receive(packet);
 
                 byte[] bufferCopy = Arrays.copyOf(buf, packet.getLength());
+
+                handleMessage(bufferCopy);
 
                 System.out.println("data: " + Arrays.toString(bufferCopy));
             }

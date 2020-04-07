@@ -5,7 +5,7 @@ import java.util.Arrays;
 
 public class BackupChannel extends Channel {
 
-    BackupChannel(int peer, String inet_address, int port) throws IOException {
+    BackupChannel(Peer peer, String inet_address, int port) throws IOException {
         super(peer, inet_address, port);
     }
 
@@ -24,9 +24,11 @@ public class BackupChannel extends Channel {
 
                 byte[] bufferCopy = Arrays.copyOf(buf, packet.getLength());
 
-                System.out.println("MDB " + peer + " data: " + packet.getLength());
+                handleMessage(bufferCopy);
 
-                File tmp = new File(peer + "/" + packet.getLength());
+                System.out.println("MDB " + peer.getPeerId() + " data: " + packet.getLength());
+
+                File tmp = new File(peer.getPeerId() + "/" + packet.getLength());
                 tmp.getParentFile().mkdirs();
                 tmp.createNewFile();
 
