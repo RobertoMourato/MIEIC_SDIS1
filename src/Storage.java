@@ -1,8 +1,10 @@
 import java.util.ArrayList;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Storage {
-    ArrayList<FileData> filesData;
-    ArrayList<Chunk> storedChunks;
+    private ArrayList<FileData> filesData;
+    private ArrayList<Chunk> storedChunks;
+    private ConcurrentHashMap<String, Integer> chunkOccurrences;
 
     /**
      * Constructor
@@ -10,6 +12,7 @@ public class Storage {
     Storage() {
         filesData = new ArrayList<>();
         storedChunks = new ArrayList<>();
+        chunkOccurrences = new ConcurrentHashMap<>();
     }
 
     /**
@@ -21,6 +24,10 @@ public class Storage {
 
     public ArrayList<Chunk> getStoredChunks() {
         return storedChunks;
+    }
+
+    public ConcurrentHashMap<String, Integer> getChunkOccurencies() {
+        return chunkOccurrences;
     }
 
     /**

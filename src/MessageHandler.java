@@ -6,6 +6,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 public class MessageHandler implements Runnable {
     Peer peer;
@@ -21,6 +23,9 @@ public class MessageHandler implements Runnable {
         String mes = new String(this.message, StandardCharsets.US_ASCII);
         mes = mes.trim();
         String[] parameters = mes.split(" ");
+        if(peer.getPeerId() == Integer.parseInt(parameters[2])){
+            return;
+        }
         switch (parameters[1]){
             case "PUTCHUNK":
                 System.out.println("PUTCHUNK");
@@ -28,6 +33,7 @@ public class MessageHandler implements Runnable {
                 break;
             case "STORED":
                 System.out.println("STORED");
+                handleStored();
                 break;
             case "GETCHUNK":
                 System.out.println("GETCHUNK");
@@ -49,10 +55,15 @@ public class MessageHandler implements Runnable {
     }
 
     void handlePutChunk() {
+
         List<String> arguments = parseMessage(true, true, true);
 
-        String fileName = peer.getPeerId() + "/" + arguments.get(3) + "_" + arguments.get(4);
-        File tmp = new File(fileName);
+        String fileName = arguments.get(3) + "_" + arguments.get(4);
+
+        this.peer.getStorage().getChunkOccurencies().put(fileName, 0);
+
+        String filePath = peer.getPeerId() + "/" + fileName;
+                File tmp = new File(filePath);
         tmp.getParentFile().mkdirs();
 
         try {
@@ -64,11 +75,33 @@ public class MessageHandler implements Runnable {
         byte[] body = arguments.get(6).getBytes(StandardCharsets.US_ASCII);
 
         try {
-            FileOutputStream writeToFile = new FileOutputStream(fileName);
+            FileOutputStream writeToFile = new FileOutputStream(filePath);
             writeToFile.write(body);
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        String header = "1.0 STORED " + peer.getPeerId() + " " + arguments.get(3) + " " + arguments.get(4) + "\r\n\r\n";
+
+        try {
+            TimeUnit.MILLISECONDS.sleep((long) (Math.random()*400));
+            this.peer.getControlChannel().sendMessage(header.getBytes());
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    void handleStored(){
+        List<String> arguments = parseMessage(true, false, false);
+
+        String fileName = arguments.get(3) + "_" + arguments.get(4);
+
+        this.peer.getStorage().getChunkOccurencies().put(fileName,
+                this.peer.getStorage().getChunkOccurencies().get(fileName) + 1);
+
+        System.out.println("Peer " + peer.getPeerId() + " Occur " + fileName + " " + this.peer.getStorage().getChunkOccurencies().get(fileName));
     }
 
     List<String> parseMessage(boolean hasChunkNumber, boolean hasReplicationDegree, boolean hasBody){

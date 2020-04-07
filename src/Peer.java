@@ -6,8 +6,10 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.security.NoSuchAlgorithmException;
+import java.util.WeakHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class Peer implements RMI {
     private int peerId;
@@ -21,6 +23,8 @@ public class Peer implements RMI {
      */
     Peer(int peerId) {
         this.peerId = peerId;
+
+        this.storage = new Storage();
 
         executor = Executors.newScheduledThreadPool(150);
 
@@ -38,8 +42,16 @@ public class Peer implements RMI {
 
     }
 
+    public ControlChannel getControlChannel() {
+        return controlChannel;
+    }
+
+    public Storage getStorage() {
+        return storage;
+    }
+
     public int getPeerId() {
-        return peerId;
+        return this.peerId;
     }
 
     public ExecutorService getExecutor() {
@@ -71,22 +83,47 @@ public class Peer implements RMI {
 //        storage.addFileData(fileData);
 
         for (int i = 0; i < fileData.getChunks().size(); i++) {
-            Chunk chunk = fileData.getChunks().get(i);
-            String header = "1.0 PUTCHUNK " + this.peerId + " " + fileData.getFileId() + " " + chunk.getChunkNo() + " " + replicationDegree + "\r\n\r\n";
-            //System.out.println(header);
-            byte[] encodedHeader = header.getBytes(StandardCharsets.US_ASCII);
-            byte[] body = chunk.getContent();
-            byte[] message = new byte[encodedHeader.length + body.length];
-            // concatenate encodedHeader with body
-            System.arraycopy(encodedHeader, 0, message, 0, encodedHeader.length);
-            System.arraycopy(body, 0, message, encodedHeader.length, body.length);
-            /**FALTA PARTE COM OS THREADS QUE AINDA N PERCEBI MT BEM, TBM TENHO DE VER MELHOR A PARTE DE MULTICAST E OS CHANNELS*/
-
-
-            this.backupChannel.sendMessage(message);
+            this.storage.getChunkOccurencies().put(fileData.getFileId() + "_" + i, 0);
         }
 
-        return "backup " + fileData.getFileId();
+        int tries = 0;
+        boolean done;
+
+        do {
+
+            done = true;
+
+            for (int i = 0; i < fileData.getChunks().size(); i++) {
+                if (this.storage.getChunkOccurencies().get(fileData.getFileId() + "_" + i) >= replicationDegree)
+                    continue;
+
+                done = false;
+
+                Chunk chunk = fileData.getChunks().get(i);
+                String header = "1.0 PUTCHUNK " + this.peerId + " " + fileData.getFileId() + " " + chunk.getChunkNo() + " " + replicationDegree + "\r\n\r\n";
+                //System.out.println(header);
+                byte[] encodedHeader = header.getBytes(StandardCharsets.US_ASCII);
+                byte[] body = chunk.getContent();
+                byte[] message = new byte[encodedHeader.length + body.length];
+                // concatenate encodedHeader with body
+                System.arraycopy(encodedHeader, 0, message, 0, encodedHeader.length);
+                System.arraycopy(body, 0, message, encodedHeader.length, body.length);
+                /**FALTA PARTE COM OS THREADS QUE AINDA N PERCEBI MT BEM, TBM TENHO DE VER MELHOR A PARTE DE MULTICAST E OS CHANNELS*/
+
+                this.storage.getChunkOccurencies().put(fileData.getFileId() + "_" + i, 0);
+
+                this.backupChannel.sendMessage(message);
+            }
+
+            try {
+                TimeUnit.MILLISECONDS.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+        } while (tries++ < 3 && !done);
+
+        return "backup " + fileData.getFileId() + " " + (done? "SUCCESSFUL" : "FAILED");
     }
 
     @Override
