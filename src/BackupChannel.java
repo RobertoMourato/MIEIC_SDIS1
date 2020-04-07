@@ -28,10 +28,6 @@ public class BackupChannel extends Channel {
 
                 System.out.println("MDB " + peer.getPeerId() + " data: " + packet.getLength());
 
-                File tmp = new File(peer.getPeerId() + "/" + packet.getLength());
-                tmp.getParentFile().mkdirs();
-                tmp.createNewFile();
-
             }
 
         } catch (Exception e){

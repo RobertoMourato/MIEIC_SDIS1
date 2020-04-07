@@ -72,7 +72,7 @@ public class Peer implements RMI {
 
         for (int i = 0; i < fileData.getChunks().size(); i++) {
             Chunk chunk = fileData.getChunks().get(i);
-            String header = "1.0 PUTCHUNK " + this.peerId + " " + fileData.getFileId() + " " + chunk.getChunkNo() + replicationDegree + "\r\n\r\n";
+            String header = "1.0 PUTCHUNK " + this.peerId + " " + fileData.getFileId() + " " + chunk.getChunkNo() + " " + replicationDegree + "\r\n\r\n";
             //System.out.println(header);
             byte[] encodedHeader = header.getBytes(StandardCharsets.US_ASCII);
             byte[] body = chunk.getContent();

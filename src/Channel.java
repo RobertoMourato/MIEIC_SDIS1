@@ -27,7 +27,7 @@ abstract class Channel implements Runnable {
     }
 
     void handleMessage(byte[] message){
-        this.peer.getExecutor().execute(new MessageHandler(message));
+        this.peer.getExecutor().execute(new MessageHandler(this.peer, message));
     }
 
 }
