@@ -43,4 +43,11 @@ public class Chunk {
     public int getSize() {
         return this.size;
     }
+
+    /**
+     * Setters
+     */
+    public void setContent(byte[] content) {
+        this.content = content;
+    }
 }

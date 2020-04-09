@@ -117,28 +117,15 @@ public class MessageHandler implements Runnable {
         boolean foundChunk = false;
         byte[] body = new byte[0];
 
-        for (Chunk chunk : this.peer.getStorage().getStoredChunks()){
+        for (Chunk chunk : this.peer.getStorage().getStoredChunks()) {
             if (chunk.getFileId().equals(arguments.get(3)) &&
-                    chunk.getChunkNo() == Integer.parseInt(arguments.get(4))){
+                    chunk.getChunkNo() == Integer.parseInt(arguments.get(4))) {
                 foundChunk = true;
                 body = new byte[chunk.getContent().length];
                 System.arraycopy(chunk.getContent(), 0, body, 0, body.length);
                 break;
             }
         }
-
-        // Nao pode ser assim que os peers que guardam os chunks nao podem ter o fileData do ficheiro
-
-//        for (int i = 0; i < this.peer.getStorage().getFilesData().size(); i++) {
-//            if (this.peer.getStorage().getFilesData().get(i).getFileId().equals(arguments.get(3))) {
-//                for (int j = 0; j < this.peer.getStorage().getFilesData().get(i).getChunks().size(); j++) {
-//                    if (this.peer.getStorage().getFilesData().get(i).getChunks().get(j).getChunkNo() == Integer.parseInt(arguments.get(4))) {
-//                        foundChunk = true;
-//                        body = this.peer.getStorage().getFilesData().get(i).getChunks().get(j).getContent();
-//                    }
-//                }
-//            }
-//        }
 
         if (foundChunk) {
             String header = "1.0 CHUNK " + this.peer.getPeerId() + " " + arguments.get(3) + " " + arguments.get(4) + "\r\n\r\n";
@@ -149,8 +136,8 @@ public class MessageHandler implements Runnable {
 
             try {
                 TimeUnit.MILLISECONDS.sleep((long) (Math.random() * 400));
-                if (this.peer.getStorage().getWantedChunks().get(fileName)) // Ja deve estar resolvido
-                    this.peer.getRestoreChannel().sendMessage(message);// FALTA VERIFICAR SE RECEBEU UMA CHUNK MESSAGE ANTES DE ENVIAR, N SEI COMO..
+                if (this.peer.getStorage().getWantedChunks().get(fileName))
+                    this.peer.getRestoreChannel().sendMessage(message);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             } catch (IOException e) {
@@ -163,13 +150,15 @@ public class MessageHandler implements Runnable {
     void handleChunk() {
         List<String> arguments = parseMessage(true, false, false);
 
-        // Isto so e importante para os peers que tbm podem enviar este chunk, falta fazer para o peer que quer recuperar o ficheiro
         String fileName = arguments.get(3) + "_" + arguments.get(4);
         this.peer.getStorage().getWantedChunks().put(fileName, false);
 
-
-        // Resto para o peer que quer receber
-
+        // penso que depois disto, na função de restore mesmo no peer, dps tenha de chamar uma função que reconstroi o ficheiro com as chunks que recebeu, mas tenho de ver melhor amanha
+        for (int i = 0; i < this.peer.getStorage().getFilesData().size(); i++) {
+            if(this.peer.getStorage().getFilesData().get(i).getFileId().equals(arguments.get(3))){
+                this.peer.getStorage().getFilesData().get(i).getChunks().get(Integer.parseInt(arguments.get(4))).setContent(arguments.get(5).getBytes(StandardCharsets.US_ASCII));
+            }
+        }
 
     }
 

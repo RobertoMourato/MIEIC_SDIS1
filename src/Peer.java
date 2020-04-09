@@ -108,10 +108,8 @@ public class Peer implements RMI {
                 byte[] encodedHeader = header.getBytes(StandardCharsets.US_ASCII);
                 byte[] body = chunk.getContent();
                 byte[] message = new byte[encodedHeader.length + body.length];
-                // concatenate encodedHeader with body
                 System.arraycopy(encodedHeader, 0, message, 0, encodedHeader.length);
                 System.arraycopy(body, 0, message, encodedHeader.length, body.length);
-                /**FALTA PARTE COM OS THREADS QUE AINDA N PERCEBI MT BEM, TBM TENHO DE VER MELHOR A PARTE DE MULTICAST E OS CHANNELS*/
 
                 this.storage.getChunkOccurrences().put(fileData.getFileId() + "_" + i, 0);
 
