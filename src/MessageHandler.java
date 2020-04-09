@@ -74,6 +74,9 @@ public class MessageHandler implements Runnable {
 
         byte[] body = arguments.get(6).getBytes(StandardCharsets.US_ASCII);
 
+        this.peer.getStorage().getStoredChunks().add(new Chunk(arguments.get(3),
+                Integer.parseInt(arguments.get(4)), body, Integer.parseInt(arguments.get(5))));
+
         try {
             FileOutputStream writeToFile = new FileOutputStream(filePath);
             writeToFile.write(body);
@@ -108,22 +111,37 @@ public class MessageHandler implements Runnable {
     void handleGetChunk() {
         List<String> arguments = parseMessage(true, false, false);
 
+        String fileName = arguments.get(3) + "_" + arguments.get(4);
+        this.peer.getStorage().getWantedChunks().put(fileName, true);
+
         boolean foundChunk = false;
         byte[] body = new byte[0];
 
-        for (int i = 0; i < this.peer.getStorage().getFilesData().size(); i++) {
-            if (this.peer.getStorage().getFilesData().get(i).getFileId().equals(arguments.get(3))) {
-                for (int j = 0; j < this.peer.getStorage().getFilesData().get(i).getChunks().size(); j++) {
-                    if (this.peer.getStorage().getFilesData().get(i).getChunks().get(j).getChunkNo() == Integer.parseInt(arguments.get(4))) {
-                        foundChunk = true;
-                        body = this.peer.getStorage().getFilesData().get(i).getChunks().get(j).getContent();
-                    }
-                }
+        for (Chunk chunk : this.peer.getStorage().getStoredChunks()){
+            if (chunk.getFileId().equals(arguments.get(3)) &&
+                    chunk.getChunkNo() == Integer.parseInt(arguments.get(4))){
+                foundChunk = true;
+                body = new byte[chunk.getContent().length];
+                System.arraycopy(chunk.getContent(), 0, body, 0, body.length);
+                break;
             }
         }
 
+        // Nao pode ser assim que os peers que guardam os chunks nao podem ter o fileData do ficheiro
+
+//        for (int i = 0; i < this.peer.getStorage().getFilesData().size(); i++) {
+//            if (this.peer.getStorage().getFilesData().get(i).getFileId().equals(arguments.get(3))) {
+//                for (int j = 0; j < this.peer.getStorage().getFilesData().get(i).getChunks().size(); j++) {
+//                    if (this.peer.getStorage().getFilesData().get(i).getChunks().get(j).getChunkNo() == Integer.parseInt(arguments.get(4))) {
+//                        foundChunk = true;
+//                        body = this.peer.getStorage().getFilesData().get(i).getChunks().get(j).getContent();
+//                    }
+//                }
+//            }
+//        }
+
         if (foundChunk) {
-            String header = "1.0 CHUNK " + this.peer.getPeerId() + arguments.get(3) + arguments.get(4) + "\r\n\r\n";
+            String header = "1.0 CHUNK " + this.peer.getPeerId() + " " + arguments.get(3) + " " + arguments.get(4) + "\r\n\r\n";
             byte[] encodedHeader = header.getBytes(StandardCharsets.US_ASCII);
             byte[] message = new byte[encodedHeader.length + body.length];
             System.arraycopy(encodedHeader, 0, message, 0, encodedHeader.length);
@@ -131,16 +149,27 @@ public class MessageHandler implements Runnable {
 
             try {
                 TimeUnit.MILLISECONDS.sleep((long) (Math.random() * 400));
-                this.peer.getRestoreChannel().sendMessage(header.getBytes());// FALTA VERIFICAR SE RECEBEU UMA CHUNK MESSAGE ANTES DE ENVIAR, N SEI COMO..
+                if (this.peer.getStorage().getWantedChunks().get(fileName)) // Ja deve estar resolvido
+                    this.peer.getRestoreChannel().sendMessage(message);// FALTA VERIFICAR SE RECEBEU UMA CHUNK MESSAGE ANTES DE ENVIAR, N SEI COMO..
             } catch (InterruptedException e) {
                 e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            this.peer.getStorage().getWantedChunks().put(fileName, false);
         }
     }
 
     void handleChunk() {
+        List<String> arguments = parseMessage(true, false, false);
+
+        // Isto so e importante para os peers que tbm podem enviar este chunk, falta fazer para o peer que quer recuperar o ficheiro
+        String fileName = arguments.get(3) + "_" + arguments.get(4);
+        this.peer.getStorage().getWantedChunks().put(fileName, false);
+
+
+        // Resto para o peer que quer receber
+
 
     }
 
