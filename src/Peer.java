@@ -6,7 +6,6 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.security.NoSuchAlgorithmException;
-import java.util.WeakHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -16,6 +15,7 @@ public class Peer implements RMI {
     private Storage storage;
     private ControlChannel controlChannel;
     private BackupChannel backupChannel;
+    private RestoreChannel restoreChannel;
     private ExecutorService executor;
 
     /**
@@ -23,27 +23,30 @@ public class Peer implements RMI {
      */
     Peer(int peerId) {
         this.peerId = peerId;
-
         this.storage = new Storage();
-
         executor = Executors.newScheduledThreadPool(150);
 
         try {
-            this.controlChannel = new ControlChannel( this, "224.0.1.0", 9998);
-            this.backupChannel = new BackupChannel( this, "224.0.0.1", 9999);
+            this.controlChannel = new ControlChannel(this, "224.0.1.0", 9998);
+            this.backupChannel = new BackupChannel(this, "224.0.0.1", 9999);
+            this.restoreChannel = new RestoreChannel(this, "224.0.0.2", 9997);
 
             executor.execute(this.controlChannel);
             executor.execute(this.backupChannel);
 
         } catch (IOException e) {
             e.printStackTrace();
-            System.out.println("Couldn't create channels for peer " + peerId );
+            System.out.println("Couldn't create channels for peer " + peerId);
         }
 
     }
 
     public ControlChannel getControlChannel() {
         return controlChannel;
+    }
+
+    public RestoreChannel getRestoreChannel() {
+        return restoreChannel;
     }
 
     public Storage getStorage() {
@@ -63,7 +66,7 @@ public class Peer implements RMI {
      */
     public static void main(String[] args) throws RemoteException, AlreadyBoundException {
 
-        for (int i = 2; i <= 4; i++){
+        for (int i = 2; i <= 4; i++) {
             new Peer(i);
         }
 
@@ -80,10 +83,10 @@ public class Peer implements RMI {
     @Override
     public String backup(String filePath, int replicationDegree) throws IOException, NoSuchAlgorithmException {
         FileData fileData = new FileData(filePath, replicationDegree);
-//        storage.addFileData(fileData);
+        storage.addFileData(fileData);
 
         for (int i = 0; i < fileData.getChunks().size(); i++) {
-            this.storage.getChunkOccurencies().put(fileData.getFileId() + "_" + i, 0);
+            this.storage.getChunkOccurrences().put(fileData.getFileId() + "_" + i, 0);
         }
 
         int tries = 0;
@@ -94,14 +97,14 @@ public class Peer implements RMI {
             done = true;
 
             for (int i = 0; i < fileData.getChunks().size(); i++) {
-                if (this.storage.getChunkOccurencies().get(fileData.getFileId() + "_" + i) >= replicationDegree)
+                if (this.storage.getChunkOccurrences().get(fileData.getFileId() + "_" + i) >= replicationDegree)
                     continue;
 
                 done = false;
 
                 Chunk chunk = fileData.getChunks().get(i);
                 String header = "1.0 PUTCHUNK " + this.peerId + " " + fileData.getFileId() + " " + chunk.getChunkNo() + " " + replicationDegree + "\r\n\r\n";
-                //System.out.println(header);
+                System.out.println(header);
                 byte[] encodedHeader = header.getBytes(StandardCharsets.US_ASCII);
                 byte[] body = chunk.getContent();
                 byte[] message = new byte[encodedHeader.length + body.length];
@@ -110,7 +113,7 @@ public class Peer implements RMI {
                 System.arraycopy(body, 0, message, encodedHeader.length, body.length);
                 /**FALTA PARTE COM OS THREADS QUE AINDA N PERCEBI MT BEM, TBM TENHO DE VER MELHOR A PARTE DE MULTICAST E OS CHANNELS*/
 
-                this.storage.getChunkOccurencies().put(fileData.getFileId() + "_" + i, 0);
+                this.storage.getChunkOccurrences().put(fileData.getFileId() + "_" + i, 0);
 
                 this.backupChannel.sendMessage(message);
             }
@@ -123,12 +126,35 @@ public class Peer implements RMI {
 
         } while (tries++ < 3 && !done);
 
-        return "backup " + fileData.getFileId() + " " + (done? "SUCCESSFUL" : "FAILED");
+        return "backup " + fileData.getFileId() + " " + (done ? "SUCCESSFUL" : "FAILED");
     }
 
     @Override
     public String restore(String filePath) throws RemoteException {
-        return "restore";
+        boolean backedUp = false;
+
+        for (int i = 0; i < this.storage.getFilesData().size(); i++) {
+            if (this.storage.getFilesData().get(i).getFile().getPath().equals(filePath)) {
+                backedUp = true;
+
+                for (int j = 0; j < this.storage.getFilesData().get(i).getChunks().size(); j++) {
+                    String header = "1.0 GETCHUNK " + this.peerId + " " + this.storage.getFilesData().get(i).getFileId() + " " + this.storage.getFilesData().get(i).getChunks().get(j).getChunkNo() + "\r\n\r\n";
+                    //System.out.println(header);
+                    byte[] message = header.getBytes(StandardCharsets.US_ASCII);
+                    try {
+                        this.controlChannel.sendMessage(message);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+
+        if (backedUp) {
+            return "Restored file " + filePath;
+        } else {
+            return "Failed restoring file " + filePath;
+        }
     }
 
     @Override

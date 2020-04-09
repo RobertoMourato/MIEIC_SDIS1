@@ -26,7 +26,7 @@ public class Storage {
         return storedChunks;
     }
 
-    public ConcurrentHashMap<String, Integer> getChunkOccurencies() {
+    public ConcurrentHashMap<String, Integer> getChunkOccurrences() {
         return chunkOccurrences;
     }
 

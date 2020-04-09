@@ -2,9 +2,9 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.util.Arrays;
 
-public class ControlChannel extends Channel {
+public class RestoreChannel extends Channel {
 
-    ControlChannel(Peer peer, String inet_address, int port) throws IOException {
+    RestoreChannel(Peer peer, String inet_address, int port) throws IOException {
         super(peer, inet_address, port);
     }
 
@@ -17,7 +17,7 @@ public class ControlChannel extends Channel {
 
             while (true) {
 
-                byte[] buf = new byte[1024];
+                byte[] buf = new byte[65024];
                 DatagramPacket packet = new DatagramPacket(buf, buf.length);
                 this.multicastSocket.receive(packet);
 
@@ -25,12 +25,13 @@ public class ControlChannel extends Channel {
 
                 handleMessage(bufferCopy);
 
-                System.out.println("MC " + peer.getPeerId() + " data: " + packet.getLength());
+                System.out.println("MDR " + peer.getPeerId() + " data: " + packet.getLength());
             }
 
         } catch (Exception e){
             System.out.println("Bad exception");
             e.printStackTrace();
         }
+
     }
 }

@@ -1,4 +1,3 @@
-import java.io.File;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.util.Arrays;
@@ -27,7 +26,6 @@ public class BackupChannel extends Channel {
                 handleMessage(bufferCopy);
 
                 System.out.println("MDB " + peer.getPeerId() + " data: " + packet.getLength());
-
             }
 
         } catch (Exception e){
