@@ -52,7 +52,7 @@ public class FileData {
         byte[] curChunk = new byte[MAX_SIZE_CHUNK];
 
         try (FileInputStream fis = new FileInputStream(file)) {
-            while ((bytesRead = fis.read(curChunk)) > 0) {
+            while ((bytesRead = fis.read(curChunk, 0, curChunk.length)) > 0) {
                 chunks.add(new Chunk(fileId, chunkNumber++, this.replicationDegree, bytesRead));
             }
             if (file.length() % MAX_SIZE_CHUNK == 0) {

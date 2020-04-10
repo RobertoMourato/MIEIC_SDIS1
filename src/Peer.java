@@ -95,21 +95,25 @@ public class Peer implements RMI {
             this.storage.getStoredChunksOccurrences().put(fileData.getFileId() + "_" + i, 0);
         }
 
-        int tries = 0;
-        boolean done;
+        int currentSize = 0;
 
-        do {
+        for (int i = 0; i < fileData.getChunks().size(); i++) {
+            Chunk chunk = fileData.getChunks().get(i);
 
-            done = true;
-            int currentSize = 0;
+            int tries = 0;
+            boolean done;
 
-            for (int i = 0; i < fileData.getChunks().size(); i++) {
-                if (this.storage.getStoredChunksOccurrences().get(fileData.getFileId() + "_" + i) >= replicationDegree)
+            do {
+                done = true;
+
+                if (this.storage.getStoredChunksOccurrences().get(fileData.getFileId() + "_" + i) >= replicationDegree) {
+                    currentSize += chunk.getSize();
                     continue;
+                }
 
                 done = false;
 
-                Chunk chunk = fileData.getChunks().get(i);
+
                 String header = "1.0 PUTCHUNK " + this.peerId + " " + fileData.getFileId() + " " + chunk.getChunkNo() + " " + replicationDegree + "\r\n\r\n";
                 System.out.println(header);
                 byte[] encodedHeader = header.getBytes(StandardCharsets.US_ASCII);
@@ -125,18 +129,29 @@ public class Peer implements RMI {
 
                 this.backupChannel.sendMessage(message);
 
-                currentSize += chunk.getSize();
-            }
+                try {
+                    TimeUnit.MILLISECONDS.sleep(100*(1<<tries));
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
 
-            try {
-                TimeUnit.MILLISECONDS.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            } while (tries++ < 5 && !done);
 
-        } while (tries++ < 5 && !done);
+            if (!done)
+                return "backup " + fileData.getFileId() + " FAILED";
 
-        return "backup " + fileData.getFileId() + " " + (done ? "SUCCESSFUL" : "FAILED");
+//                currentSize += chunk.getSize();
+        }
+
+//            try {
+//                TimeUnit.MILLISECONDS.sleep(1000*(1<<tries));
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+
+
+
+        return "backup " + fileData.getFileId() + " SUCCESSFUL";
     }
 
     @Override
@@ -165,6 +180,12 @@ public class Peer implements RMI {
                 this.getStorage().getSelfPeerWantedChunks().put(fileData.getChunks().get(i).getIdentifier(), true);
 
                 try {
+                    TimeUnit.MILLISECONDS.sleep(500);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                try {
                     this.controlChannel.sendMessage(message);
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -173,7 +194,7 @@ public class Peer implements RMI {
         }
 
         try {
-            TimeUnit.MILLISECONDS.sleep(5000);
+            TimeUnit.MILLISECONDS.sleep(1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -186,9 +207,11 @@ public class Peer implements RMI {
             for (int i = 0; i < fileData.getChunks().size(); i++){
                 Chunk curChunk = fileData.getChunks().get(i);
                 System.out.println("ON RESTORE: Chunk " + curChunk.getIdentifier() );
-//                if (!this.storage.getStoredSelfWantedChunks().get(curChunk.getIdentifier())){
-//                    allAvailable = false;
-//                }
+                if (this.storage.getStoredSelfWantedChunks().get(curChunk.getIdentifier()) == null ||
+                        !this.storage.getStoredSelfWantedChunks().get(curChunk.getIdentifier())){
+                    allAvailable = false;
+                    break;
+                }
             }
 
             if (allAvailable){
