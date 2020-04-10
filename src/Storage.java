@@ -2,44 +2,57 @@ import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class Storage {
-    private ArrayList<FileData> filesData;
-    private ArrayList<Chunk> storedChunks;
-    private ConcurrentHashMap<String, Integer> chunkOccurrences;
-    private ConcurrentHashMap<String, Boolean> wantedChunks;
+    private ConcurrentHashMap<String, FileData> filesData;
+    private ConcurrentHashMap<String, Chunk> storedChunks;
+    private ConcurrentHashMap<String, Integer> storedChunksOccurrences;
+    private ConcurrentHashMap<String, Boolean> otherPeersWantedChunks;
+    private ConcurrentHashMap<String, Boolean> selfPeerWantedChunks;
+    private ConcurrentHashMap<String, Boolean> storedSelfWantedChunks;
 
     /**
      * Constructor
      */
     Storage() {
-        filesData = new ArrayList<>();
-        storedChunks = new ArrayList<>();
-        chunkOccurrences = new ConcurrentHashMap<>();
-        wantedChunks = new ConcurrentHashMap<>();
+        filesData = new ConcurrentHashMap<>();
+        storedChunks = new ConcurrentHashMap<>();
+        storedChunksOccurrences = new ConcurrentHashMap<>();
+        otherPeersWantedChunks = new ConcurrentHashMap<>();
+        selfPeerWantedChunks = new ConcurrentHashMap<>();
+        storedSelfWantedChunks = new ConcurrentHashMap<>();
     }
 
     /**
      * Getters
      */
-    public ArrayList<FileData> getFilesData() {
+    public ConcurrentHashMap<String, FileData> getFilesData() {
         return filesData;
     }
 
-    public ArrayList<Chunk> getStoredChunks() {
+    public ConcurrentHashMap<String, Chunk> getStoredChunks() {
         return storedChunks;
     }
 
-    public ConcurrentHashMap<String, Integer> getChunkOccurrences() {
-        return chunkOccurrences;
+    public ConcurrentHashMap<String, Integer> getStoredChunksOccurrences() {
+        return storedChunksOccurrences;
     }
 
-    public ConcurrentHashMap<String, Boolean> getWantedChunks() {
-        return wantedChunks;
+    public ConcurrentHashMap<String, Boolean> getOtherPeersWantedChunks() {
+        return otherPeersWantedChunks;
+    }
+
+    public ConcurrentHashMap<String, Boolean> getSelfPeerWantedChunks() {
+        return selfPeerWantedChunks;
+    }
+
+    public ConcurrentHashMap<String, Boolean> getStoredSelfWantedChunks() {
+        return storedSelfWantedChunks;
     }
 
     /**
      * Other Methods
      */
     public void addFileData(FileData fileData) {
-        filesData.add(fileData);
+        filesData.put(fileData.getFileId(), fileData);
     }
+
 }

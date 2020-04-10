@@ -9,17 +9,16 @@ public class FileData {
     private static int MAX_SIZE_CHUNK = 64000;
     private String fileId;
     private int replicationDegree;
-    private File file;
     private ArrayList<Chunk> chunks;
 
     /**
      * Constructor
      */
     public FileData(String filePath, int replicationDegree) throws IOException, NoSuchAlgorithmException {
-        this.file = new File(filePath);
+        File file = new File(filePath);
         this.replicationDegree = replicationDegree;
-        this.fileId = FileData.generateFileId(this.file);
-        this.chunks = generateChunksFromFile(this.file, this.fileId);
+        this.fileId = FileData.generateFileId(file);
+        this.chunks = generateChunksFromFile(file, this.fileId);
     }
 
     /**
@@ -31,10 +30,6 @@ public class FileData {
 
     public int getReplicationDegree() {
         return this.replicationDegree;
-    }
-
-    public java.io.File getFile() {
-        return this.file;
     }
 
     public ArrayList<Chunk> getChunks() {
@@ -58,10 +53,10 @@ public class FileData {
 
         try (FileInputStream fis = new FileInputStream(file)) {
             while ((bytesRead = fis.read(curChunk)) > 0) {
-                chunks.add(new Chunk(fileId, chunkNumber++, Arrays.copyOf(curChunk, bytesRead), this.replicationDegree));
+                chunks.add(new Chunk(fileId, chunkNumber++, this.replicationDegree, bytesRead));
             }
             if (file.length() % MAX_SIZE_CHUNK == 0) {
-                chunks.add(new Chunk(fileId, chunkNumber, null, this.replicationDegree));
+                chunks.add(new Chunk(fileId, chunkNumber, this.replicationDegree, 0));
             }
         } catch (Exception e) {
             e.printStackTrace();

@@ -1,3 +1,4 @@
 .floo
 .flooignore
 **/*.class
+**/.DS_Store

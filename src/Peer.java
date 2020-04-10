@@ -1,5 +1,9 @@
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.rmi.AlreadyBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -33,6 +37,7 @@ public class Peer implements RMI {
 
             executor.execute(this.controlChannel);
             executor.execute(this.backupChannel);
+            executor.execute(this.restoreChannel);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -83,10 +88,11 @@ public class Peer implements RMI {
     @Override
     public String backup(String filePath, int replicationDegree) throws IOException, NoSuchAlgorithmException {
         FileData fileData = new FileData(filePath, replicationDegree);
+        byte[] content = Files.readAllBytes(Paths.get(filePath));
         storage.addFileData(fileData);
 
         for (int i = 0; i < fileData.getChunks().size(); i++) {
-            this.storage.getChunkOccurrences().put(fileData.getFileId() + "_" + i, 0);
+            this.storage.getStoredChunksOccurrences().put(fileData.getFileId() + "_" + i, 0);
         }
 
         int tries = 0;
@@ -95,9 +101,10 @@ public class Peer implements RMI {
         do {
 
             done = true;
+            int currentSize = 0;
 
             for (int i = 0; i < fileData.getChunks().size(); i++) {
-                if (this.storage.getChunkOccurrences().get(fileData.getFileId() + "_" + i) >= replicationDegree)
+                if (this.storage.getStoredChunksOccurrences().get(fileData.getFileId() + "_" + i) >= replicationDegree)
                     continue;
 
                 done = false;
@@ -106,14 +113,19 @@ public class Peer implements RMI {
                 String header = "1.0 PUTCHUNK " + this.peerId + " " + fileData.getFileId() + " " + chunk.getChunkNo() + " " + replicationDegree + "\r\n\r\n";
                 System.out.println(header);
                 byte[] encodedHeader = header.getBytes(StandardCharsets.US_ASCII);
-                byte[] body = chunk.getContent();
+
+                byte[] body = new byte[chunk.getSize()];
+                System.arraycopy(content, currentSize, body, 0, chunk.getSize());
+
                 byte[] message = new byte[encodedHeader.length + body.length];
                 System.arraycopy(encodedHeader, 0, message, 0, encodedHeader.length);
                 System.arraycopy(body, 0, message, encodedHeader.length, body.length);
 
-                this.storage.getChunkOccurrences().put(fileData.getFileId() + "_" + i, 0);
+                this.storage.getStoredChunksOccurrences().put(fileData.getFileId() + "_" + i, 0);
 
                 this.backupChannel.sendMessage(message);
+
+                currentSize += chunk.getSize();
             }
 
             try {
@@ -122,7 +134,7 @@ public class Peer implements RMI {
                 e.printStackTrace();
             }
 
-        } while (tries++ < 3 && !done);
+        } while (tries++ < 5 && !done);
 
         return "backup " + fileData.getFileId() + " " + (done ? "SUCCESSFUL" : "FAILED");
     }
@@ -130,29 +142,129 @@ public class Peer implements RMI {
     @Override
     public String restore(String filePath) throws RemoteException {
         boolean backedUp = false;
+        String fileID = "NULL";
+        try {
+            fileID = FileData.generateFileId(new File(filePath));
+            System.out.println("ON RESTORE: get file ID");
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
 
-        for (int i = 0; i < this.storage.getFilesData().size(); i++) {
-            if (this.storage.getFilesData().get(i).getFile().getPath().equals(filePath)) {
-                backedUp = true;
+        if (this.storage.getFilesData().get(fileID) != null){
+            System.out.println("ON RESTORE: File != null");
+            backedUp = true;
+            FileData fileData = this.storage.getFilesData().get(fileID);
 
-                for (int j = 0; j < this.storage.getFilesData().get(i).getChunks().size(); j++) {
-                    String header = "1.0 GETCHUNK " + this.peerId + " " + this.storage.getFilesData().get(i).getFileId() + " " + this.storage.getFilesData().get(i).getChunks().get(j).getChunkNo() + "\r\n\r\n";
-                    //System.out.println(header);
-                    byte[] message = header.getBytes(StandardCharsets.US_ASCII);
-                    try {
-                        this.controlChannel.sendMessage(message);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+            for (int i = 0; i < fileData.getChunks().size(); i++){
+                String header = "1.0 GETCHUNK " + this.peerId + " " + fileData.getFileId() + " " + fileData.getChunks().get(i).getChunkNo() + "\r\n\r\n";
+                //System.out.println(header);
+                byte[] message = header.getBytes(StandardCharsets.US_ASCII);
+
+                this.getStorage().getSelfPeerWantedChunks().put(fileData.getChunks().get(i).getIdentifier(), true);
+
+                try {
+                    this.controlChannel.sendMessage(message);
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             }
         }
 
-        if (backedUp) {
-            return "Restored file " + filePath;
-        } else {
-            return "Failed restoring file " + filePath;
+        try {
+            TimeUnit.MILLISECONDS.sleep(5000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
+
+        boolean allAvailable = true;
+
+        if (backedUp){
+            FileData fileData = this.storage.getFilesData().get(fileID);
+
+            for (int i = 0; i < fileData.getChunks().size(); i++){
+                Chunk curChunk = fileData.getChunks().get(i);
+                System.out.println("ON RESTORE: Chunk " + curChunk.getIdentifier() );
+//                if (!this.storage.getStoredSelfWantedChunks().get(curChunk.getIdentifier())){
+//                    allAvailable = false;
+//                }
+            }
+
+            if (allAvailable){
+
+                File endFile = new File("restored/" + this.peerId + "/" + filePath);
+                endFile.getParentFile().mkdirs();
+                FileOutputStream writeToFile = null;
+
+                try {
+                    endFile.createNewFile();
+                    writeToFile = new FileOutputStream(endFile);
+                    System.out.println("ON RESTORE: Create file and writer");
+//                    writeToFile.write(arguments.get(5).getBytes());
+                } catch (Exception e){
+                    e.printStackTrace();
+                }
+
+
+
+                for (int i = 0; i < fileData.getChunks().size(); i++){
+                    Chunk curChunk = fileData.getChunks().get(i);
+                    String fileChunkPath = this.getPeerId() + "/wanted/" + curChunk.getIdentifier();
+                    File tmp = new File(fileChunkPath);
+
+                    try {
+                        writeToFile.write(Files.readAllBytes(tmp.toPath()));
+                        System.out.println("ON RESTORE: Write " + curChunk.getIdentifier() );
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+
+                }
+
+                return "Restored file " + endFile;
+
+
+//                String filePath = peer.getPeerId() + "/wanted/" + fileName;
+//                File tmp = new File(filePath);
+//                tmp.getParentFile().mkdirs();
+//
+//                this.peer.getStorage().getSelfPeerWantedChunks().put(fileName, false);
+//                this.peer.getStorage().getStoredSelfWantedChunks().put(fileName, true);
+//
+//                try {
+//                    tmp.createNewFile();
+//                    FileOutputStream writeToFile = new FileOutputStream(tmp);
+//                    writeToFile.write(arguments.get(5).getBytes());
+
+
+
+            }
+        }
+
+//        for (int i = 0; i < this.storage.getFilesData().size(); i++) {
+//            if (this.storage.getFilesData().get(i).getFile().getPath().equals(filePath)) {
+//                backedUp = true;
+//
+//                for (int j = 0; j < this.storage.getFilesData().get(i).getChunks().size(); j++) {
+//                    String header = "1.0 GETCHUNK " + this.peerId + " " + this.storage.getFilesData().get(i).getFileId() + " " + this.storage.getFilesData().get(i).getChunks().get(j).getChunkNo() + "\r\n\r\n";
+//                    //System.out.println(header);
+//                    byte[] message = header.getBytes(StandardCharsets.US_ASCII);
+//                    try {
+//                        this.controlChannel.sendMessage(message);
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//            }
+//        }
+
+//        if (backedUp) {
+//            return "Restored file " + filePath;
+//        } else {
+            return "Failed restoring file " + filePath;
+//        }
     }
 
     @Override

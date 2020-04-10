@@ -1,20 +1,20 @@
+import java.io.File;
 
 public class Chunk {
     private String fileId;
     private int chunkNo;
     private int replicationDegree;
     private int currentReplicationId;
-    private byte[] content;
     private int size;
 
     /**
      * Constructor
      */
-    public Chunk(String fileId, int chunkNo, byte[] content, int replicationDegree) {
+    public Chunk(String fileId, int chunkNo, int replicationDegree, int size) {
         this.fileId = fileId;
         this.chunkNo = chunkNo;
-        this.content = content;
         this.replicationDegree = replicationDegree;
+        this.size = size;
     }
 
     /**
@@ -36,18 +36,20 @@ public class Chunk {
         return this.currentReplicationId;
     }
 
-    public byte[] getContent() {
-        return this.content;
-    }
-
     public int getSize() {
         return this.size;
+    }
+
+    public String getIdentifier() {
+        return  fileId + "_" + chunkNo;
+    }
+
+    public static File getFileChunk(int peerID, String fileId){
+        String filePath = peerID + "/" + fileId;
+        return new File(filePath);
     }
 
     /**
      * Setters
      */
-    public void setContent(byte[] content) {
-        this.content = content;
-    }
 }
