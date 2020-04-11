@@ -27,23 +27,24 @@ public class MessageHandler implements Runnable {
         }
         switch (parameters[1]) {
             case "PUTCHUNK":
-                System.out.println("PUTCHUNK" + this.peer.getPeerId());
+                System.out.println("PUTCHUNK " + this.peer.getPeerId());
                 handlePutChunk();
                 break;
             case "STORED":
-                System.out.println("STORED" + this.peer.getPeerId());
+                System.out.println("STORED " + this.peer.getPeerId());
                 handleStored();
                 break;
             case "GETCHUNK":
-                System.out.println("GETCHUNK" + this.peer.getPeerId());
+                System.out.println("GETCHUNK " + this.peer.getPeerId());
                 handleGetChunk();
                 break;
             case "CHUNK":
-                System.out.println("CHUNK" + this.peer.getPeerId());
+                System.out.println("CHUNK " + this.peer.getPeerId());
                 handleChunk();
                 break;
             case "DELETE":
-                System.out.println("DELETE");
+                System.out.println("DELETE "  + this.peer.getPeerId());
+                handleDelete();
                 break;
             case "REMOVED":
                 System.out.println("REMOVED");
@@ -53,6 +54,25 @@ public class MessageHandler implements Runnable {
                 System.out.println(parameters[1]);
                 break;
         }
+    }
+
+    void handleDelete() {
+
+        List<String> arguments = parseMessage(false, false);
+
+        String fileId = arguments.get(3);
+
+        for (int i = 0; i < 1000000; i++){  // TODO melhorar isto, assim esta a fazer muitos calculos
+            String chunkId = fileId + "_" + i;
+            if (this.peer.getStorage().getStoredChunks().get(chunkId) != null){
+
+                File file = new File(this.peer.getPeerId() + "/" + chunkId);
+                file.delete();
+
+                this.peer.getStorage().getStoredChunks().remove(chunkId);
+            }
+        }
+
     }
 
     void handlePutChunk() {

@@ -292,7 +292,37 @@ public class Peer implements RMI {
 
     @Override
     public String delete(String filePath) throws RemoteException {
-        return "delete";
+
+        String fileID = "NULL";
+        try {
+            fileID = FileData.generateFileId(new File(filePath));
+            System.out.println("ON DELETE: get file ID");
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+
+        if (this.storage.getFilesData().get(fileID) != null){
+
+            FileData fileData = this.storage.getFilesData().get(fileID);
+
+
+            String header = "1.0 DELETE " + this.peerId + " " + fileData.getFileId() + "\r\n\r\n";
+
+            try {
+                this.controlChannel.sendMessage(header.getBytes());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+
+
+            return "DELETE " + filePath + " SUCCESSFUL";
+        }
+
+
+        return "DELETE " + filePath + " FAILED";
     }
 
     @Override
