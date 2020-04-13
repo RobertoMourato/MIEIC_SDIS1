@@ -16,8 +16,13 @@ public class RestoreChannel extends Channel {
             this.multicastSocket.joinGroup(this.multicastInetAddress);
 
             while (true) {
+                byte[] buf;
+                if(this.peer.getVersion().equals("1.0")){
+                    buf = new byte[65024];
+                }else{
+                    buf = new byte[1024];
+                }
 
-                byte[] buf = new byte[1024];
                 DatagramPacket packet = new DatagramPacket(buf, buf.length);
                 this.multicastSocket.receive(packet);
 

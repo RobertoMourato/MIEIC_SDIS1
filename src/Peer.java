@@ -27,12 +27,18 @@ public class Peer implements RMI {
     private ServerSocket serverSocket = null;
     private Socket socket = null;
     private InputStream inputStream = null;
+    private String version;
 
     /**
      * Constructor
      */
-    Peer(int peerId) {
+    Peer(int peerId, int version) {
         this.peerId = peerId;
+        if (version == 1) {
+            this.version = "1.0";
+        } else {
+            this.version = "2.0";
+        }
         this.storage = new Storage();
         executor = Executors.newScheduledThreadPool(150);
 
@@ -84,16 +90,32 @@ public class Peer implements RMI {
         return inputStream;
     }
 
+    public String getVersion() {
+        return version;
+    }
+
     /**
      * Main
      */
-    public static void main(String[] args) throws RemoteException, AlreadyBoundException {
+    public static void main(String[] args) throws RemoteException {
+        int version;
 
-        for (int i = 2; i <= 4; i++) {
-            new Peer(i);
+        if (args.length == 1) {
+            version = Integer.parseInt(args[0]);
+            if (version != 1 && version != 2) {
+                System.out.println("ERROR: Peer arguments invalid: Version(1 or 2)");
+                return;
+            }
+        } else {
+            System.out.println("ERROR: Peer arguments invalid: Version(1 or 2)");
+            return;
         }
 
-        Peer peer = new Peer(1);
+        for (int i = 2; i <= 4; i++) {
+            new Peer(i, version);
+        }
+
+        Peer peer = new Peer(1, version);
         RMI sender = (RMI) UnicastRemoteObject.exportObject(peer, 0);
 
         Registry registry = LocateRegistry.getRegistry();
@@ -196,7 +218,7 @@ public class Peer implements RMI {
             FileData fileData = this.storage.getFilesData().get(fileID);
 
             for (int i = 0; i < fileData.getChunks().size(); i++) {
-                String header = "1.0 GETCHUNK " + this.peerId + " " + fileData.getFileId() + " " + fileData.getChunks().get(i).getChunkNo() + "\r\n\r\n";
+                String header = this.version + " GETCHUNK " + this.peerId + " " + fileData.getFileId() + " " + fileData.getChunks().get(i).getChunkNo() + "\r\n\r\n";
                 //System.out.println(header);
                 byte[] message = header.getBytes(StandardCharsets.US_ASCII);
 
@@ -210,22 +232,32 @@ public class Peer implements RMI {
 
                 try {
                     this.controlChannel.sendMessage(message);
-                    this.socket = this.serverSocket.accept();
-                    this.socket.setReuseAddress(true);
-                    this.inputStream = this.socket.getInputStream();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
 
-                while (this.getStorage().getSelfPeerWantedChunks().get(fileData.getChunks().get(i).getIdentifier())) {}
+                if (this.version.equals("2.0")) {
+                    try {
+                        this.socket = this.serverSocket.accept();
+                        this.socket.setReuseAddress(true);
+                        this.inputStream = this.socket.getInputStream();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    while (this.getStorage().getSelfPeerWantedChunks().get(fileData.getChunks().get(i).getIdentifier())) {
+                    }
+                }
             }
         }
 
-        try {
-            this.socket.close();
-            this.serverSocket.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (this.version.equals("2.0")) {
+            try {
+                this.socket.close();
+                this.serverSocket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
         try {

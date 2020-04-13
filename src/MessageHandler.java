@@ -157,22 +157,28 @@ public class MessageHandler implements Runnable {
 
 
         if (foundChunk) {
-            String header = "2.0 CHUNK " + this.peer.getPeerId() + " " + arguments.get(3) + " " + arguments.get(4) + "\r\n\r\n";
+            String header = this.peer.getVersion() + " CHUNK " + this.peer.getPeerId() + " " + arguments.get(3) + " " + arguments.get(4) + "\r\n\r\n";
             byte[] encodedHeader = header.getBytes(StandardCharsets.US_ASCII);
             byte[] message = new byte[encodedHeader.length + body.length];
             System.arraycopy(encodedHeader, 0, message, 0, encodedHeader.length);
+            if (this.peer.getVersion().equals("1.0")) {
+                System.arraycopy(body, 0, message, encodedHeader.length, body.length);
+            }
 
             try {
                 TimeUnit.MILLISECONDS.sleep((long) (Math.random() * 400));
                 if (this.peer.getStorage().getOtherPeersWantedChunks().get(fileName)) {
                     this.peer.getRestoreChannel().sendMessage(message);
-                    try {
-                        Socket socket = new Socket("localhost", 10010);
-                        OutputStream outputStream = socket.getOutputStream();
-                        outputStream.write(body);
-                        outputStream.close();
-                        socket.close();
-                    } catch (IOException ignored) {}
+                    if (this.peer.getVersion().equals("2.0")) {
+                        try {
+                            Socket socket = new Socket("localhost", 10010);
+                            OutputStream outputStream = socket.getOutputStream();
+                            outputStream.write(body);
+                            outputStream.close();
+                            socket.close();
+                        } catch (IOException ignored) {
+                        }
+                    }
                 }
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -195,27 +201,34 @@ public class MessageHandler implements Runnable {
             File tmp = new File(filePath);
             tmp.getParentFile().mkdirs();
 
-            try {
-                TimeUnit.MILLISECONDS.sleep(200);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
             byte[] buf = new byte[64000];
             int count = 0;
-            while (count == 0){
+
+            if(this.peer.getVersion().equals("2.0")){
                 try {
-                    count = this.peer.getInputStream().read(buf);
-                    this.peer.getInputStream().close();
-                } catch (IOException e) {
+                    TimeUnit.MILLISECONDS.sleep(200);
+                } catch (InterruptedException e) {
                     e.printStackTrace();
+                }
+
+                while (count == 0) {
+                    try {
+                        count = this.peer.getInputStream().read(buf);
+                        this.peer.getInputStream().close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
 
             try {
                 tmp.createNewFile();
                 FileOutputStream writeToFile = new FileOutputStream(tmp);
-                writeToFile.write(buf, 0, count);
+                if(this.peer.getVersion().equals("1.0")){
+                    writeToFile.write(parseBody());
+                }else {
+                    writeToFile.write(buf, 0, count);
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
