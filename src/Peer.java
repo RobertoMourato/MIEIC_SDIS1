@@ -24,14 +24,9 @@ public class Peer implements RMI {
     private BackupChannel backupChannel;
     private RestoreChannel restoreChannel;
     private ExecutorService executor;
-
-    /**
-     * TCP
-     */
     private ServerSocket serverSocket = null;
     private Socket socket = null;
     private InputStream inputStream = null;
-    /**TCP*/
 
     /**
      * Constructor
@@ -213,7 +208,6 @@ public class Peer implements RMI {
                     e.printStackTrace();
                 }
 
-                System.out.println("aiaiai");
                 try {
                     this.controlChannel.sendMessage(message);
                     this.socket = this.serverSocket.accept();
@@ -223,11 +217,7 @@ public class Peer implements RMI {
                     e.printStackTrace();
                 }
 
-                while (this.getStorage().getSelfPeerWantedChunks().get(fileData.getChunks().get(i).getIdentifier())) {
-                    //System.out.println("AHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH");
-                }
-
-                /**TCP*/
+                while (this.getStorage().getSelfPeerWantedChunks().get(fileData.getChunks().get(i).getIdentifier())) {}
             }
         }
 
@@ -269,7 +259,7 @@ public class Peer implements RMI {
                     endFile.createNewFile();
                     writeToFile = new FileOutputStream(endFile);
                     System.out.println("ON RESTORE: Create file and writer");
-//                    writeToFile.write(arguments.get(5).getBytes());
+                    //writeToFile.write(arguments.get(5).getBytes());
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -291,46 +281,9 @@ public class Peer implements RMI {
                 }
 
                 return "Restored file " + endFile;
-
-
-//                String filePath = peer.getPeerId() + "/wanted/" + fileName;
-//                File tmp = new File(filePath);
-//                tmp.getParentFile().mkdirs();
-//
-//                this.peer.getStorage().getSelfPeerWantedChunks().put(fileName, false);
-//                this.peer.getStorage().getStoredSelfWantedChunks().put(fileName, true);
-//
-//                try {
-//                    tmp.createNewFile();
-//                    FileOutputStream writeToFile = new FileOutputStream(tmp);
-//                    writeToFile.write(arguments.get(5).getBytes());
-
-
             }
         }
-
-//        for (int i = 0; i < this.storage.getFilesData().size(); i++) {
-//            if (this.storage.getFilesData().get(i).getFile().getPath().equals(filePath)) {
-//                backedUp = true;
-//
-//                for (int j = 0; j < this.storage.getFilesData().get(i).getChunks().size(); j++) {
-//                    String header = "1.0 GETCHUNK " + this.peerId + " " + this.storage.getFilesData().get(i).getFileId() + " " + this.storage.getFilesData().get(i).getChunks().get(j).getChunkNo() + "\r\n\r\n";
-//                    //System.out.println(header);
-//                    byte[] message = header.getBytes(StandardCharsets.US_ASCII);
-//                    try {
-//                        this.controlChannel.sendMessage(message);
-//                    } catch (IOException e) {
-//                        e.printStackTrace();
-//                    }
-//                }
-//            }
-//        }
-
-//        if (backedUp) {
-//            return "Restored file " + filePath;
-//        } else {
         return "Failed restoring file " + filePath;
-//        }
     }
 
     @Override

@@ -2,11 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="1583eb13-5911-4bfe-8a43-d507b239bf74" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/MessageHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/MessageHandler.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Peer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Peer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/RestoreChannel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/RestoreChannel.java" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -15,58 +12,46 @@
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
-  <component name="DockManager">
-    <window id="1">
-      <content type="file-editors">
-        <state>
-          <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-            <file pinned="false" current-in-tab="false">
-              <entry file="file://$PROJECT_DIR$/src/Peer.java">
-                <provider selected="true" editor-type-id="text-editor">
-                  <state relative-caret-position="260">
-                    <caret line="209" column="16" selection-start-line="209" selection-start-column="16" selection-end-line="213" selection-end-column="17" />
-                    <folding>
-                      <element signature="imports" expanded="true" />
-                      <element signature="e#2213#2214#0" expanded="true" />
-                      <element signature="e#2248#2249#0" expanded="true" />
-                      <element signature="e#2281#2282#0" expanded="true" />
-                      <element signature="e#2310#2311#0" expanded="true" />
-                      <element signature="e#2201#2202#0" expanded="true" />
-                      <element signature="e#2235#2236#0" expanded="true" />
-                    </folding>
-                  </state>
-                </provider>
-              </entry>
-            </file>
-            <file pinned="false" current-in-tab="true">
-              <entry file="file://$PROJECT_DIR$/src/MessageHandler.java">
-                <provider selected="true" editor-type-id="text-editor">
-                  <state relative-caret-position="1235">
-                    <caret line="217" column="13" selection-start-line="217" selection-start-column="13" selection-end-line="217" selection-end-column="13" />
-                    <folding>
-                      <element signature="imports" expanded="true" />
-                      <element signature="method#handleDelete#0;class#MessageHandler#0" />
-                      <element signature="method#handlePutChunk#0;class#MessageHandler#0" />
-                      <element signature="method#handleStored#0;class#MessageHandler#0" />
-                      <element signature="method#parseMessage#0;class#MessageHandler#0" />
-                      <element signature="method#parseBody#0;class#MessageHandler#0" />
-                    </folding>
-                  </state>
-                </provider>
-              </entry>
-            </file>
-          </leaf>
-        </state>
-      </content>
-    </window>
-  </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/RestoreChannel.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="48">
+            <state relative-caret-position="165">
               <caret line="13" selection-start-line="13" selection-end-line="13" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/MessageHandler.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="1800">
+              <caret line="192" column="77" selection-start-line="192" selection-start-column="77" selection-end-line="192" selection-end-column="77" />
+              <folding>
+                <element signature="imports" expanded="true" />
+                <element signature="method#handleDelete#0;class#MessageHandler#0" />
+                <element signature="method#handlePutChunk#0;class#MessageHandler#0" />
+                <element signature="method#handleStored#0;class#MessageHandler#0" />
+                <element signature="method#parseMessage#0;class#MessageHandler#0" />
+                <element signature="method#parseBody#0;class#MessageHandler#0" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/Peer.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="106">
+              <caret line="189" column="32" selection-start-line="189" selection-start-column="32" selection-end-line="189" selection-end-column="32" />
+              <folding>
+                <element signature="imports" expanded="true" />
+                <element signature="e#2213#2214#0" expanded="true" />
+                <element signature="e#2248#2249#0" expanded="true" />
+                <element signature="e#2281#2282#0" expanded="true" />
+                <element signature="e#2310#2311#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -123,7 +108,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
+      <pane id="PackagesPane" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -140,7 +125,7 @@
           <select />
         </subPane>
       </pane>
-      <pane id="PackagesPane" />
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -194,9 +179,8 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="67" y="25" width="1853" height="1055" extended-state="6" />
-    <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.26563364" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.14886552" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Image Layers" order="2" />
       <window_info id="Designer" order="3" />
@@ -210,7 +194,7 @@
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
-      <window_info active="true" anchor="bottom" id="Terminal" order="7" visible="true" weight="0.46392897" />
+      <window_info active="true" anchor="bottom" id="Terminal" order="7" visible="true" weight="0.2552719" />
       <window_info anchor="bottom" id="Event Log" order="8" side_tool="true" />
       <window_info anchor="bottom" id="Version Control" order="9" />
       <window_info anchor="bottom" id="Floobits" order="10" weight="0.32741398" />
@@ -399,73 +383,36 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/2/62D05136620EA158FC45E5810ABA8C6F0A1B2AEC235EDE827BCDDEF9D2DC00A1_0">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/1/wanted/62D05136620EA158FC45E5810ABA8C6F0A1B2AEC235EDE827BCDDEF9D2DC00A1_0">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="195">
-          <caret line="13" selection-start-line="13" selection-end-line="13" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/restored/1/image.png">
-      <provider selected="true" editor-type-id="images" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/1/wanted/3F893467335A4F57B4E4E0992B25CFD70D181209D525E3D925CB02D4A1ECF23D_0">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/1/wanted/3F893467335A4F57B4E4E0992B25CFD70D181209D525E3D925CB02D4A1ECF23D_1">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/1/wanted/3F893467335A4F57B4E4E0992B25CFD70D181209D525E3D925CB02D4A1ECF23D_2">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/1/wanted/3F893467335A4F57B4E4E0992B25CFD70D181209D525E3D925CB02D4A1ECF23D_3">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/1/wanted/3F893467335A4F57B4E4E0992B25CFD70D181209D525E3D925CB02D4A1ECF23D_4">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/1/wanted/3F893467335A4F57B4E4E0992B25CFD70D181209D525E3D925CB02D4A1ECF23D_5">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/1/wanted/3F893467335A4F57B4E4E0992B25CFD70D181209D525E3D925CB02D4A1ECF23D_6">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/1/wanted/3F893467335A4F57B4E4E0992B25CFD70D181209D525E3D925CB02D4A1ECF23D_7">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/1/wanted/3F893467335A4F57B4E4E0992B25CFD70D181209D525E3D925CB02D4A1ECF23D_8">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
+    <entry file="file://$PROJECT_DIR$/src/2/62D05136620EA158FC45E5810ABA8C6F0A1B2AEC235EDE827BCDDEF9D2DC00A1_0" />
+    <entry file="file://$PROJECT_DIR$/src/1/wanted/62D05136620EA158FC45E5810ABA8C6F0A1B2AEC235EDE827BCDDEF9D2DC00A1_0" />
+    <entry file="file://$PROJECT_DIR$/src/restored/1/image.png" />
+    <entry file="file://$PROJECT_DIR$/src/1/wanted/3F893467335A4F57B4E4E0992B25CFD70D181209D525E3D925CB02D4A1ECF23D_0" />
+    <entry file="file://$PROJECT_DIR$/src/1/wanted/3F893467335A4F57B4E4E0992B25CFD70D181209D525E3D925CB02D4A1ECF23D_1" />
+    <entry file="file://$PROJECT_DIR$/src/1/wanted/3F893467335A4F57B4E4E0992B25CFD70D181209D525E3D925CB02D4A1ECF23D_2" />
+    <entry file="file://$PROJECT_DIR$/src/1/wanted/3F893467335A4F57B4E4E0992B25CFD70D181209D525E3D925CB02D4A1ECF23D_3" />
+    <entry file="file://$PROJECT_DIR$/src/1/wanted/3F893467335A4F57B4E4E0992B25CFD70D181209D525E3D925CB02D4A1ECF23D_4" />
+    <entry file="file://$PROJECT_DIR$/src/1/wanted/3F893467335A4F57B4E4E0992B25CFD70D181209D525E3D925CB02D4A1ECF23D_5" />
+    <entry file="file://$PROJECT_DIR$/src/1/wanted/3F893467335A4F57B4E4E0992B25CFD70D181209D525E3D925CB02D4A1ECF23D_6" />
+    <entry file="file://$PROJECT_DIR$/src/1/wanted/3F893467335A4F57B4E4E0992B25CFD70D181209D525E3D925CB02D4A1ECF23D_7" />
+    <entry file="file://$PROJECT_DIR$/src/1/wanted/3F893467335A4F57B4E4E0992B25CFD70D181209D525E3D925CB02D4A1ECF23D_8" />
     <entry file="file://$PROJECT_DIR$/src/Peer.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="260">
-          <caret line="209" column="16" selection-start-line="209" selection-start-column="16" selection-end-line="213" selection-end-column="17" />
+        <state relative-caret-position="106">
+          <caret line="189" column="32" selection-start-line="189" selection-start-column="32" selection-end-line="189" selection-end-column="32" />
           <folding>
             <element signature="imports" expanded="true" />
             <element signature="e#2213#2214#0" expanded="true" />
             <element signature="e#2248#2249#0" expanded="true" />
             <element signature="e#2281#2282#0" expanded="true" />
             <element signature="e#2310#2311#0" expanded="true" />
-            <element signature="e#2201#2202#0" expanded="true" />
-            <element signature="e#2235#2236#0" expanded="true" />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/RestoreChannel.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="48">
-          <caret line="13" selection-start-line="13" selection-end-line="13" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/MessageHandler.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1235">
-          <caret line="217" column="13" selection-start-line="217" selection-start-column="13" selection-end-line="217" selection-end-column="13" />
+        <state relative-caret-position="1800">
+          <caret line="192" column="77" selection-start-line="192" selection-start-column="77" selection-end-line="192" selection-end-column="77" />
           <folding>
             <element signature="imports" expanded="true" />
             <element signature="method#handleDelete#0;class#MessageHandler#0" />
@@ -474,6 +421,13 @@
             <element signature="method#parseMessage#0;class#MessageHandler#0" />
             <element signature="method#parseBody#0;class#MessageHandler#0" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/RestoreChannel.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="165">
+          <caret line="13" selection-start-line="13" selection-end-line="13" />
         </state>
       </provider>
     </entry>

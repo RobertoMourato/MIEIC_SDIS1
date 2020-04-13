@@ -161,13 +161,11 @@ public class MessageHandler implements Runnable {
             byte[] encodedHeader = header.getBytes(StandardCharsets.US_ASCII);
             byte[] message = new byte[encodedHeader.length + body.length];
             System.arraycopy(encodedHeader, 0, message, 0, encodedHeader.length);
-            //System.arraycopy(body, 0, message, encodedHeader.length, body.length);
 
             try {
                 TimeUnit.MILLISECONDS.sleep((long) (Math.random() * 400));
                 if (this.peer.getStorage().getOtherPeersWantedChunks().get(fileName)) {
                     this.peer.getRestoreChannel().sendMessage(message);
-                    /**TCP*/
                     try {
                         Socket socket = new Socket("localhost", 10010);
                         OutputStream outputStream = socket.getOutputStream();
@@ -175,7 +173,6 @@ public class MessageHandler implements Runnable {
                         outputStream.close();
                         socket.close();
                     } catch (IOException ignored) {}
-                    /**TCP*/
                 }
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -194,7 +191,6 @@ public class MessageHandler implements Runnable {
 
 
         if (this.peer.getStorage().getSelfPeerWantedChunks().get(fileName)) {
-            System.out.println("là dentro");
             String filePath = peer.getPeerId() + "/wanted/" + fileName;
             File tmp = new File(filePath);
             tmp.getParentFile().mkdirs();
@@ -205,7 +201,6 @@ public class MessageHandler implements Runnable {
                 e.printStackTrace();
             }
 
-            /**TCP*/
             byte[] buf = new byte[64000];
             int count = 0;
             while (count == 0){
@@ -216,7 +211,6 @@ public class MessageHandler implements Runnable {
                     e.printStackTrace();
                 }
             }
-            /**TCP*/
 
             try {
                 tmp.createNewFile();
