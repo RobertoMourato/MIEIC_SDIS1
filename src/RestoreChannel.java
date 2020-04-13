@@ -17,7 +17,7 @@ public class RestoreChannel extends Channel {
 
             while (true) {
 
-                byte[] buf = new byte[65024];
+                byte[] buf = new byte[1024];
                 DatagramPacket packet = new DatagramPacket(buf, buf.length);
                 this.multicastSocket.receive(packet);
 

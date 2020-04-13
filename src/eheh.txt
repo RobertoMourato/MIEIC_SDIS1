@@ -1,0 +1,13 @@
+BEGIN TRANSACTION;
+SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+    	do $$
+		DECLARE
+			NEXT_ID integer := ((select max(id) from report)+1);
+	begin
+		INSERT INTO report (id, reporter_id, user_id, description)
+			VALUES (NEXT_ID, 1, 27, 'ta tolo');
+
+		INSERT INTO report_status (id, report_id, comment, responsible_user)
+			VALUES (NEXT_ID, NEXT_ID, 'individuo tolo', 1);
+	end $$;
+COMMIT;

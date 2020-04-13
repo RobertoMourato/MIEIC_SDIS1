@@ -1,6 +1,8 @@
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -43,7 +45,7 @@ public class MessageHandler implements Runnable {
                 handleChunk();
                 break;
             case "DELETE":
-                System.out.println("DELETE "  + this.peer.getPeerId());
+                System.out.println("DELETE " + this.peer.getPeerId());
                 handleDelete();
                 break;
             case "REMOVED":
@@ -62,9 +64,9 @@ public class MessageHandler implements Runnable {
 
         String fileId = arguments.get(3);
 
-        for (int i = 0; i < 1000000; i++){  // TODO melhorar isto, assim esta a fazer muitos calculos
+        for (int i = 0; i < 1000000; i++) {  // TODO melhorar isto, assim esta a fazer muitos calculos
             String chunkId = fileId + "_" + i;
-            if (this.peer.getStorage().getStoredChunks().get(chunkId) != null){
+            if (this.peer.getStorage().getStoredChunks().get(chunkId) != null) {
 
                 File file = new File(this.peer.getPeerId() + "/" + chunkId);
                 file.delete();
@@ -143,7 +145,7 @@ public class MessageHandler implements Runnable {
         boolean foundChunk = false;
         byte[] body = new byte[0];
 
-        if (this.peer.getStorage().getStoredChunks().get(fileName) != null){
+        if (this.peer.getStorage().getStoredChunks().get(fileName) != null) {
             Chunk chunk = this.peer.getStorage().getStoredChunks().get(fileName);
             foundChunk = true;
             try {
@@ -151,30 +153,30 @@ public class MessageHandler implements Runnable {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-//            System.arraycopy(chunk.getContent(), 0, body, 0, body.length);
         }
 
-//        for (Chunk chunk : this.peer.getStorage().getStoredChunks()) {
-//            if (chunk.getFileId().equals(arguments.get(3)) &&
-//                    chunk.getChunkNo() == Integer.parseInt(arguments.get(4))) {
-//                foundChunk = true;
-//                body = new byte[chunk.getContent().length];
-//                System.arraycopy(chunk.getContent(), 0, body, 0, body.length);
-//                break;
-//            }
-//        }
 
         if (foundChunk) {
-            String header = "1.0 CHUNK " + this.peer.getPeerId() + " " + arguments.get(3) + " " + arguments.get(4) + "\r\n\r\n";
+            String header = "2.0 CHUNK " + this.peer.getPeerId() + " " + arguments.get(3) + " " + arguments.get(4) + "\r\n\r\n";
             byte[] encodedHeader = header.getBytes(StandardCharsets.US_ASCII);
             byte[] message = new byte[encodedHeader.length + body.length];
             System.arraycopy(encodedHeader, 0, message, 0, encodedHeader.length);
-            System.arraycopy(body, 0, message, encodedHeader.length, body.length);
+            //System.arraycopy(body, 0, message, encodedHeader.length, body.length);
 
             try {
                 TimeUnit.MILLISECONDS.sleep((long) (Math.random() * 400));
-                if (this.peer.getStorage().getOtherPeersWantedChunks().get(fileName))
+                if (this.peer.getStorage().getOtherPeersWantedChunks().get(fileName)) {
                     this.peer.getRestoreChannel().sendMessage(message);
+                    /**TCP*/
+                    try {
+                        Socket socket = new Socket("localhost", 10010);
+                        OutputStream outputStream = socket.getOutputStream();
+                        outputStream.write(body);
+                        outputStream.close();
+                        socket.close();
+                    } catch (IOException ignored) {}
+                    /**TCP*/
+                }
             } catch (InterruptedException e) {
                 e.printStackTrace();
             } catch (IOException e) {
@@ -191,31 +193,42 @@ public class MessageHandler implements Runnable {
         this.peer.getStorage().getOtherPeersWantedChunks().put(fileName, false);
 
 
-        if (this.peer.getStorage().getSelfPeerWantedChunks().get(fileName)){
+        if (this.peer.getStorage().getSelfPeerWantedChunks().get(fileName)) {
+            System.out.println("là dentro");
             String filePath = peer.getPeerId() + "/wanted/" + fileName;
             File tmp = new File(filePath);
             tmp.getParentFile().mkdirs();
 
-            this.peer.getStorage().getSelfPeerWantedChunks().put(fileName, false);
-            this.peer.getStorage().getStoredSelfWantedChunks().put(fileName, true);
+            try {
+                TimeUnit.MILLISECONDS.sleep(200);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            /**TCP*/
+            byte[] buf = new byte[64000];
+            int count = 0;
+            while (count == 0){
+                try {
+                    count = this.peer.getInputStream().read(buf);
+                    this.peer.getInputStream().close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            /**TCP*/
 
             try {
                 tmp.createNewFile();
                 FileOutputStream writeToFile = new FileOutputStream(tmp);
-                writeToFile.write(parseBody());
+                writeToFile.write(buf, 0, count);
             } catch (IOException e) {
                 e.printStackTrace();
             }
 
+            this.peer.getStorage().getSelfPeerWantedChunks().put(fileName, false);
+            this.peer.getStorage().getStoredSelfWantedChunks().put(fileName, true);
         }
-
-//        // penso que depois disto, na função de restore mesmo no peer, dps tenha de chamar uma função que reconstroi o ficheiro com as chunks que recebeu, mas tenho de ver melhor amanha
-//        for (int i = 0; i < this.peer.getStorage().getFilesData().size(); i++) {
-//            if(this.peer.getStorage().getFilesData().get(i).getFileId().equals(arguments.get(3))){
-//                this.peer.getStorage().getFilesData().get(i).getChunks().get(Integer.parseInt(arguments.get(4))).setContent(arguments.get(5).getBytes(StandardCharsets.US_ASCII));
-//            }
-//        }
-
     }
 
     List<String> parseMessage(boolean hasChunkNumber, boolean hasReplicationDegree) {
