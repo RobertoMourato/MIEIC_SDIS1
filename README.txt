@@ -27,4 +27,4 @@ Eg: java Application localhost/1 RECLAIM 0
 
 - STATE
 >java Application <host>/<peer_access_point> STATE
-Eg: java Application localhost/1 STATE 0
+Eg: java Application localhost/1 STATE
