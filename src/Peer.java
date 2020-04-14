@@ -82,6 +82,10 @@ public class Peer implements RMI {
         return restoreChannel;
     }
 
+    public BackupChannel getBackupChannel() {
+        return backupChannel;
+    }
+
     public Storage getStorage() {
         return storage;
     }
@@ -367,6 +371,8 @@ public class Peer implements RMI {
     public String reclaim(int diskSpace) throws RemoteException {
 
         int maxSpace = diskSpace * 1000;
+        this.getStorage().setMaxOccupiedSpace(maxSpace);
+
 
         if (this.getStorage().getOccupiedSpace() > maxSpace){
 
@@ -390,8 +396,9 @@ public class Peer implements RMI {
                     String header = this.version + " REMOVED " + this.peerId + " " + chunk.getFileId() + " " + chunk.getChunkNo() + "\r\n\r\n";
 
                     try {
+                        TimeUnit.MILLISECONDS.sleep((long) (Math.random() * 400));
                         this.controlChannel.sendMessage(header.getBytes());
-                    } catch (IOException e) {
+                    } catch (IOException | InterruptedException e) {
                         e.printStackTrace();
                     }
 
@@ -402,9 +409,68 @@ public class Peer implements RMI {
 
             }
 
-        }
 
-        this.getStorage().setMaxOccupiedSpace(maxSpace);
+            it = this.getStorage().getStoredChunks().entrySet().iterator();
+            while (it.hasNext() && this.getStorage().getOccupiedSpace() > maxSpace) { // Delete chunks not caring for priority
+                ConcurrentHashMap.Entry<String, Chunk> pair = it.next();
+
+                Chunk chunk = pair.getValue();
+                String chunkID = pair.getKey();
+
+
+                this.getStorage().deleteStoredChunk(chunkID);
+                this.getStorage().getStoredChunksOccurrences().put(chunkID,
+                        this.getStorage().getStoredChunksOccurrences().get(chunkID) - 1);
+
+                String header = this.version + " REMOVED " + this.peerId + " " + chunk.getFileId() + " " + chunk.getChunkNo() + "\r\n\r\n";
+
+                try {
+                    TimeUnit.MILLISECONDS.sleep((long) (Math.random() * 400));
+                    this.controlChannel.sendMessage(header.getBytes());
+                } catch (IOException | InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                File file = new File(this.getPeerId() + "/" + chunkID);
+
+
+                if (this.getStorage().getStoredChunksOccurrences().get(chunkID) == 0){  // this peer was the only with this chunk
+                    this.getStorage().getHandleLowOccurences().put(chunkID, true);
+
+                    byte[] body = new byte[0];
+
+                    try {
+                        body = Files.readAllBytes(file.toPath());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    header = this.getVersion() + " PUTCHUNK " + this.getPeerId() + " " + chunk.getFileId() + " " + chunk.getChunkNo() + " " + chunk.getReplicationDegree() + "\r\n\r\n";
+                    byte[] encodedHeader = header.getBytes(StandardCharsets.US_ASCII);
+                    byte[] message = new byte[encodedHeader.length + body.length];
+                    System.arraycopy(encodedHeader, 0, message, 0, encodedHeader.length);
+                    System.arraycopy(body, 0, message, encodedHeader.length, body.length);
+
+                    try {
+                        TimeUnit.MILLISECONDS.sleep(500);
+                        if (this.getStorage().getHandleLowOccurences().get(chunkID)) {
+                            this.getBackupChannel().sendMessage(message);
+                        }
+                    } catch (InterruptedException | IOException e) {
+                        e.printStackTrace();
+                    }
+
+                }
+
+                file.delete();
+
+                System.out.println("REMOVED " + pair.getValue().getIdentifier());
+
+                it.remove(); // deletes pair, avoids a ConcurrentModificationException
+
+            }
+
+        }
 
         return "reclaim";
     }
@@ -416,8 +482,16 @@ public class Peer implements RMI {
         status.append("Max occupied Space: " + this.getStorage().getMaxOccupiedSpace() + "\n");
         status.append("Occupied Space: " + this.getStorage().getOccupiedSpace() + "\n");
 
+        status.append("ALL\n");
+
         for (ConcurrentHashMap.Entry<String, Integer> pair : this.getStorage().getStoredChunksOccurrences().entrySet()){
             status.append(pair.getKey()).append(" ").append(pair.getValue()).append("\n");
+        }
+
+        status.append("HERE\n");
+        for (ConcurrentHashMap.Entry<String, Chunk> pair : this.getStorage().getStoredChunks().entrySet()){
+            status.append(pair.getKey()).append(" ").append(pair.getValue().getSize()).append(" ")
+                    .append(this.getStorage().getStoredChunksOccurrences().get(pair.getKey())).append("\n");
         }
 
 

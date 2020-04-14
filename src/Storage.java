@@ -8,6 +8,7 @@ public class Storage {
     private ConcurrentHashMap<String, Boolean> otherPeersWantedChunks;
     private ConcurrentHashMap<String, Boolean> selfPeerWantedChunks;
     private ConcurrentHashMap<String, Boolean> storedSelfWantedChunks;
+    private ConcurrentHashMap<String, Boolean> handleLowOccurences;
     private int occupiedSpace;
     private int maxOccupiedSpace;   // in bytes
 
@@ -21,6 +22,7 @@ public class Storage {
         otherPeersWantedChunks = new ConcurrentHashMap<>();
         selfPeerWantedChunks = new ConcurrentHashMap<>();
         storedSelfWantedChunks = new ConcurrentHashMap<>();
+        handleLowOccurences = new ConcurrentHashMap<>();
         occupiedSpace = 0;
         maxOccupiedSpace = 1000000000;
     }
@@ -50,6 +52,10 @@ public class Storage {
 
     public ConcurrentHashMap<String, Chunk> getStoredChunks() {
         return storedChunks;
+    }
+
+    public ConcurrentHashMap<String, Boolean> getHandleLowOccurences() {
+        return handleLowOccurences;
     }
 
     public int getOccupiedSpace() {

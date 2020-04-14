@@ -71,6 +71,47 @@ public class MessageHandler implements Runnable {
 
             System.out.println(this.peer.getPeerId() + " " + fileName + " " +
                     this.peer.getStorage().getStoredChunksOccurrences().get(fileName));
+
+            if (this.peer.getStorage().getStoredChunk(fileName) != null &&
+                    (this.peer.getStorage().getStoredChunksOccurrences().get(fileName)
+                    < this.peer.getStorage().getStoredChunk(fileName).getReplicationDegree())){
+
+                this.peer.getStorage().getHandleLowOccurences().put(fileName, true);
+
+                byte[] body = new byte[0];
+
+                Chunk chunk = this.peer.getStorage().getStoredChunk(fileName);
+
+                try {
+                    body = Files.readAllBytes(Chunk.getFileChunk(this.peer.getPeerId(), chunk.getIdentifier()).toPath());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                String header = this.peer.getVersion() + " PUTCHUNK " + this.peer.getPeerId() + " " + chunk.getFileId() + " " + chunk.getChunkNo() + " " + chunk.getReplicationDegree() + "\r\n\r\n";
+                byte[] encodedHeader = header.getBytes(StandardCharsets.US_ASCII);
+                byte[] message = new byte[encodedHeader.length + body.length];
+                System.arraycopy(encodedHeader, 0, message, 0, encodedHeader.length);
+                System.arraycopy(body, 0, message, encodedHeader.length, body.length);
+
+                try {
+                    TimeUnit.MILLISECONDS.sleep((long) (Math.random() * 400));
+                    if (this.peer.getStorage().getHandleLowOccurences().get(fileName)) {
+                        this.peer.getStorage().getStoredChunksOccurrences().put(fileName, 1);
+                        this.peer.getBackupChannel().sendMessage(message);
+
+                        header = this.peer.getVersion() + " STORED " + peer.getPeerId() + " " + chunk.getFileId() + " " + chunk.getChunkNo() + "\r\n\r\n";
+                        TimeUnit.MILLISECONDS.sleep((long) (Math.random() * 400));
+                        this.peer.getControlChannel().sendMessage(header.getBytes());
+                    }
+                } catch (InterruptedException e){
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                this.peer.getStorage().getHandleLowOccurences().put(fileName, false);
+            }
         }
 
     }
@@ -103,9 +144,14 @@ public class MessageHandler implements Runnable {
 
 
         this.peer.getStorage().getStoredChunksOccurrences().put(fileName, 0);
+        this.peer.getStorage().getHandleLowOccurences().put(fileName, false);
 
         Chunk receivedChunk = new Chunk(arguments.get(3), Integer.parseInt(arguments.get(4)),
                 Integer.parseInt(arguments.get(5)), body.length);
+
+        if (this.peer.getStorage().getFilesData().get(receivedChunk.getFileId()) != null){ // peer shouldn't store its own files
+            return;
+        }
 
         if (!this.peer.getStorage().addStoredChunk(receivedChunk)){  // no space for chunk
             return;
