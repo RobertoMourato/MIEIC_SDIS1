@@ -25,7 +25,7 @@ public class BackupChannel extends Channel {
 
                 handleMessage(bufferCopy);
 
-                System.out.println("MDB " + peer.getPeerId() + " data: " + packet.getLength());
+//                System.out.println("MDB " + peer.getPeerId() + " data: " + packet.getLength());
             }
 
         } catch (Exception e){

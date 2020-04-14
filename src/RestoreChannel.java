@@ -30,7 +30,7 @@ public class RestoreChannel extends Channel {
 
                 handleMessage(bufferCopy);
 
-                System.out.println("MDR " + peer.getPeerId() + " data: " + packet.getLength());
+//                System.out.println("MDR " + peer.getPeerId() + " data: " + packet.getLength());
             }
 
         } catch (Exception e){

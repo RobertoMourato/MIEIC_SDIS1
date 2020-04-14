@@ -125,6 +125,7 @@ public class Peer implements RMI {
         if (args.length != 8){
             System.out.println("Format invalid, please try again.");
             System.out.println("Format: Peer <version> <n_peers> <MC_address> <MC_port> <MDB_address> <MDB_port> <MDR_address> <MDR_port>");
+            return;
         }
 
         version = Integer.parseInt(args[0]);
@@ -233,7 +234,7 @@ public class Peer implements RMI {
 
 
                 String header = "1.0 PUTCHUNK " + this.peerId + " " + fileData.getFileId() + " " + chunk.getChunkNo() + " " + replicationDegree + "\r\n\r\n";
-                System.out.println(header);
+//                System.out.println(header);
                 byte[] encodedHeader = header.getBytes(StandardCharsets.US_ASCII);
 
                 byte[] body = new byte[chunk.getSize()];
@@ -283,7 +284,7 @@ public class Peer implements RMI {
         String fileID = "NULL";
         try {
             fileID = FileData.generateFileId(new File(filePath));
-            System.out.println("ON RESTORE: get file ID");
+//            System.out.println("ON RESTORE: get file ID");
         } catch (IOException e) {
             e.printStackTrace();
         } catch (NoSuchAlgorithmException e) {
@@ -291,7 +292,7 @@ public class Peer implements RMI {
         }
 
         if (this.storage.getFilesData().get(fileID) != null) {
-            System.out.println("ON RESTORE: File != null");
+//            System.out.println("ON RESTORE: File != null");
             backedUp = true;
             FileData fileData = this.storage.getFilesData().get(fileID);
 
@@ -359,7 +360,7 @@ public class Peer implements RMI {
 
             for (int i = 0; i < fileData.getChunks().size(); i++) {
                 Chunk curChunk = fileData.getChunks().get(i);
-                System.out.println("ON RESTORE: Chunk " + curChunk.getIdentifier());
+//                System.out.println("ON RESTORE: Chunk " + curChunk.getIdentifier());
                 if (this.storage.getStoredSelfWantedChunks().get(curChunk.getIdentifier()) == null ||
                         !this.storage.getStoredSelfWantedChunks().get(curChunk.getIdentifier())) {
                     allAvailable = false;
@@ -376,7 +377,7 @@ public class Peer implements RMI {
                 try {
                     endFile.createNewFile();
                     writeToFile = new FileOutputStream(endFile);
-                    System.out.println("ON RESTORE: Create file and writer");
+//                    System.out.println("ON RESTORE: Create file and writer");
                     //writeToFile.write(arguments.get(5).getBytes());
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -390,11 +391,12 @@ public class Peer implements RMI {
 
                     try {
                         writeToFile.write(Files.readAllBytes(tmp.toPath()));
-                        System.out.println("ON RESTORE: Write " + curChunk.getIdentifier());
+//                        System.out.println("ON RESTORE: Write " + curChunk.getIdentifier());
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
 
+                    tmp.delete();
 
                 }
 
@@ -410,7 +412,7 @@ public class Peer implements RMI {
         String fileID = "NULL";
         try {
             fileID = FileData.generateFileId(new File(filePath));
-            System.out.println("ON DELETE: get file ID");
+//            System.out.println("ON DELETE: get file ID");
         } catch (IOException e) {
             e.printStackTrace();
         } catch (NoSuchAlgorithmException e) {
@@ -473,7 +475,7 @@ public class Peer implements RMI {
                         e.printStackTrace();
                     }
 
-                    System.out.println("REMOVED " + pair.getValue().getIdentifier());
+//                    System.out.println("REMOVED " + pair.getValue().getIdentifier());
 
                     it.remove(); // deletes pair, avoids a ConcurrentModificationException
                 }
@@ -535,7 +537,7 @@ public class Peer implements RMI {
 
                 file.delete();
 
-                System.out.println("REMOVED " + pair.getValue().getIdentifier());
+//                System.out.println("REMOVED " + pair.getValue().getIdentifier());
 
                 it.remove(); // deletes pair, avoids a ConcurrentModificationException
 

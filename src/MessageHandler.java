@@ -122,7 +122,7 @@ public class MessageHandler implements Runnable {
 
         String fileId = arguments.get(3);
 
-        for (int i = 0; i < 1000000; i++) {  // TODO melhorar isto, assim esta a fazer muitos calculos
+        for (int i = 0; i < 1000000; i++) {
             String chunkId = fileId + "_" + i;
             if (this.peer.getStorage().getStoredChunk(chunkId) != null) {
 
@@ -201,7 +201,7 @@ public class MessageHandler implements Runnable {
         this.peer.getStorage().getStoredChunksOccurrences().put(fileName,
                 this.peer.getStorage().getStoredChunksOccurrences().get(fileName) + 1);
 
-        System.out.println("Peer " + peer.getPeerId() + " Occur " + fileName + " " + this.peer.getStorage().getStoredChunksOccurrences().get(fileName));
+//        System.out.println("Peer " + peer.getPeerId() + " Occur " + fileName + " " + this.peer.getStorage().getStoredChunksOccurrences().get(fileName));
 
     }
 
@@ -300,10 +300,10 @@ public class MessageHandler implements Runnable {
 
         String[] arguments = header.split(" ");
 
-        if (argsCount != arguments.length) {
-            System.out.println("Error parsing message: wrong number of arguments");
-            System.out.println("Expected " + argsCount + " got " + arguments.length);
-        }
+//        if (argsCount != arguments.length) {
+//            System.out.println("Error parsing message: wrong number of arguments");
+//            System.out.println("Expected " + argsCount + " got " + arguments.length);
+//        }
 
         //
 //
