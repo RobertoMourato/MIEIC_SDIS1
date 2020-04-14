@@ -1,6 +1,7 @@
 import java.io.File;
+import java.io.Serializable;
 
-public class Chunk {
+public class Chunk implements Serializable {
     private String fileId;
     private int chunkNo;
     private int replicationDegree;

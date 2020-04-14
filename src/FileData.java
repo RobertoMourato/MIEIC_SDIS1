@@ -5,9 +5,10 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class FileData {
+public class FileData implements Serializable{
     private static int MAX_SIZE_CHUNK = 64000;
     private String fileId;
+    private String filePath;
     private int replicationDegree;
     private ArrayList<Chunk> chunks;
 
@@ -16,6 +17,7 @@ public class FileData {
      */
     public FileData(String filePath, int replicationDegree) throws IOException, NoSuchAlgorithmException {
         File file = new File(filePath);
+        this.filePath = filePath;
         this.replicationDegree = replicationDegree;
         this.fileId = FileData.generateFileId(file);
         this.chunks = generateChunksFromFile(file, this.fileId);
@@ -26,6 +28,10 @@ public class FileData {
      */
     public String getFileId() {
         return this.fileId;
+    }
+
+    public String getFilePath() {
+        return filePath;
     }
 
     public int getReplicationDegree() {

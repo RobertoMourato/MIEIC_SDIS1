@@ -1,7 +1,4 @@
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
@@ -42,6 +39,11 @@ public class Peer implements RMI {
             this.version = "2.0";
         }
         this.storage = new Storage();
+
+        tryToGetPreviousStorageState();
+
+        Runtime.getRuntime().addShutdownHook(new Thread(this::saveStorageState));
+
         executor = Executors.newScheduledThreadPool(150);
 
         try {
@@ -133,6 +135,59 @@ public class Peer implements RMI {
 
         for (int i = 1; i <= 4; i++) {
             new Peer(i, version);
+        }
+
+    }
+
+    private void saveStorageState() {
+
+        String filename = this.getPeerId() + "/serialization.ser";
+
+        File file = new File(filename);
+
+        try {
+
+            if (!file.exists()) {
+                file.getParentFile().mkdirs();
+                file.createNewFile();
+            }
+
+            FileOutputStream fis = new FileOutputStream(file);
+            ObjectOutputStream out = new ObjectOutputStream(fis);
+
+            out.writeObject(this.getStorage());
+
+            out.close();
+            fis.close();
+
+            System.out.println("Saved state of peer " + this.getPeerId());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private void tryToGetPreviousStorageState() {
+
+        String filename = this.getPeerId() + "/serialization.ser";
+
+        File file = new File(filename);
+
+        if (!file.exists())
+            return;
+
+        try {
+
+            FileInputStream fis = new FileInputStream(file);
+            ObjectInputStream in = new ObjectInputStream(fis);
+
+            this.storage = (Storage)in.readObject();
+
+            in.close();
+            fis.close();
+            System.out.println("Loaded previous state of peer " + this.getPeerId());
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
         }
 
     }
@@ -479,20 +534,27 @@ public class Peer implements RMI {
     public String state() throws RemoteException {
         StringBuilder status = new StringBuilder(14);
 
-        status.append("Max occupied Space: " + this.getStorage().getMaxOccupiedSpace() + "\n");
-        status.append("Occupied Space: " + this.getStorage().getOccupiedSpace() + "\n");
+        status.append("Files initiated by this peer:\n");
 
-        status.append("ALL\n");
-
-        for (ConcurrentHashMap.Entry<String, Integer> pair : this.getStorage().getStoredChunksOccurrences().entrySet()){
-            status.append(pair.getKey()).append(" ").append(pair.getValue()).append("\n");
+        for (ConcurrentHashMap.Entry<String, FileData> pair : this.getStorage().getFilesData().entrySet()){
+            status.append(pair.getValue().getFilePath()).append(" ").append(pair.getValue().getFileId())
+                    .append(" ").append(pair.getValue().getReplicationDegree()).append("\n");
+            for (int i = 0; i < pair.getValue().getChunks().size(); i++){
+                Chunk chunk = pair.getValue().getChunks().get(i);
+                status.append("   ").append(chunk.getIdentifier()).append(" ")
+                        .append(this.getStorage().getStoredChunksOccurrences().get(chunk.getIdentifier()))
+                        .append("\n");
+            }
         }
 
-        status.append("HERE\n");
+        status.append("Chunks stored in this peer:\n");
         for (ConcurrentHashMap.Entry<String, Chunk> pair : this.getStorage().getStoredChunks().entrySet()){
             status.append(pair.getKey()).append(" ").append(pair.getValue().getSize()).append(" ")
                     .append(this.getStorage().getStoredChunksOccurrences().get(pair.getKey())).append("\n");
         }
+
+        status.append("Max occupied Space: ").append(this.getStorage().getMaxOccupiedSpace()).append("\n");
+        status.append("Occupied Space: ").append(this.getStorage().getOccupiedSpace()).append("\n");
 
 
         return status.toString();

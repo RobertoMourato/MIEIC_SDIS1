@@ -1,7 +1,8 @@
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class Storage {
+public class Storage implements Serializable {
     private ConcurrentHashMap<String, FileData> filesData;
     private ConcurrentHashMap<String, Chunk> storedChunks;
     private ConcurrentHashMap<String, Integer> storedChunksOccurrences;
