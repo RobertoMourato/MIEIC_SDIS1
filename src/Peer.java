@@ -56,6 +56,20 @@ public class Peer implements RMI {
             System.out.println("Couldn't create channels for peer " + peerId);
         }
 
+
+        try {
+
+            RMI sender = (RMI) UnicastRemoteObject.exportObject(this, 0);
+
+            Registry registry = LocateRegistry.getRegistry();
+
+            registry.rebind("peer-" + peerId, sender);
+
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+
+
     }
 
     public ControlChannel getControlChannel() {
@@ -111,15 +125,10 @@ public class Peer implements RMI {
             return;
         }
 
-        for (int i = 2; i <= 4; i++) {
+        for (int i = 1; i <= 4; i++) {
             new Peer(i, version);
         }
 
-        Peer peer = new Peer(1, version);
-        RMI sender = (RMI) UnicastRemoteObject.exportObject(peer, 0);
-
-        Registry registry = LocateRegistry.getRegistry();
-        registry.rebind("ououou", sender);
     }
 
     /**
@@ -354,17 +363,20 @@ public class Peer implements RMI {
 
     @Override
     public String reclaim(int diskSpace) throws RemoteException {
+
+
+
         return "reclaim";
     }
 
     @Override
     public String state() throws RemoteException {
-        byte[] mes = "ola".getBytes();
-        try {
-            this.controlChannel.sendMessage(mes);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return "state";
+        StringBuilder status = new StringBuilder(14);
+
+        status.append("Max occupied Space: " + this.getStorage().getMaxOccupiedSpace() + "\n");
+        status.append("Occupied Space: " + this.getStorage().getOccupiedSpace());
+
+
+        return status.toString();
     }
 }

@@ -66,12 +66,12 @@ public class MessageHandler implements Runnable {
 
         for (int i = 0; i < 1000000; i++) {  // TODO melhorar isto, assim esta a fazer muitos calculos
             String chunkId = fileId + "_" + i;
-            if (this.peer.getStorage().getStoredChunks().get(chunkId) != null) {
+            if (this.peer.getStorage().getStoredChunk(chunkId) != null) {
 
                 File file = new File(this.peer.getPeerId() + "/" + chunkId);
                 file.delete();
 
-                this.peer.getStorage().getStoredChunks().remove(chunkId);
+                this.peer.getStorage().deleteStoredChunk(chunkId);
             }
         }
 
@@ -80,10 +80,23 @@ public class MessageHandler implements Runnable {
     void handlePutChunk() {
 
         List<String> arguments = parseMessage(true, true);
+        byte[] body = parseBody();
 
         String fileName = arguments.get(3) + "_" + arguments.get(4);
 
+
         this.peer.getStorage().getStoredChunksOccurrences().put(fileName, 0);
+
+        Chunk receivedChunk = new Chunk(arguments.get(3), Integer.parseInt(arguments.get(4)),
+                Integer.parseInt(arguments.get(5)), body.length);
+
+        if (!this.peer.getStorage().addStoredChunk(receivedChunk)){  // no space for chunk
+            return;
+        }
+
+        this.peer.getStorage().getStoredChunksOccurrences().put(fileName,
+                this.peer.getStorage().getStoredChunksOccurrences().get(fileName) + 1);
+
 
         String filePath = peer.getPeerId() + "/" + fileName;
         File tmp = new File(filePath);
@@ -94,13 +107,6 @@ public class MessageHandler implements Runnable {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        byte[] body = parseBody();
-
-        Chunk receivedChunk = new Chunk(arguments.get(3), Integer.parseInt(arguments.get(4)),
-                Integer.parseInt(arguments.get(5)), body.length);
-
-        this.peer.getStorage().getStoredChunks().put(receivedChunk.getIdentifier(), receivedChunk);
 
 //        this.peer.getStorage().getStoredChunks().add(new Chunk(arguments.get(3),
 //                Integer.parseInt(arguments.get(4)), body, Integer.parseInt(arguments.get(5))));
@@ -145,8 +151,8 @@ public class MessageHandler implements Runnable {
         boolean foundChunk = false;
         byte[] body = new byte[0];
 
-        if (this.peer.getStorage().getStoredChunks().get(fileName) != null) {
-            Chunk chunk = this.peer.getStorage().getStoredChunks().get(fileName);
+        if (this.peer.getStorage().getStoredChunk(fileName) != null) {
+            Chunk chunk = this.peer.getStorage().getStoredChunk(fileName);
             foundChunk = true;
             try {
                 body = Files.readAllBytes(Chunk.getFileChunk(this.peer.getPeerId(), chunk.getIdentifier()).toPath());

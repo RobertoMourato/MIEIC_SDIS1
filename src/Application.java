@@ -17,7 +17,7 @@ public class Application {
             String peerID = peerInfo[1];
 
             Registry registry = LocateRegistry.getRegistry(host);
-            RMI peer = (RMI) registry.lookup("ououou");
+            RMI peer = (RMI) registry.lookup("peer-" + peerID);
 
             String filePath;
 

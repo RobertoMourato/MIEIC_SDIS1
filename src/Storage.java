@@ -8,6 +8,8 @@ public class Storage {
     private ConcurrentHashMap<String, Boolean> otherPeersWantedChunks;
     private ConcurrentHashMap<String, Boolean> selfPeerWantedChunks;
     private ConcurrentHashMap<String, Boolean> storedSelfWantedChunks;
+    private int occupiedSpace;
+    private int maxOccupiedSpace;   // in bytes
 
     /**
      * Constructor
@@ -19,6 +21,8 @@ public class Storage {
         otherPeersWantedChunks = new ConcurrentHashMap<>();
         selfPeerWantedChunks = new ConcurrentHashMap<>();
         storedSelfWantedChunks = new ConcurrentHashMap<>();
+        occupiedSpace = 0;
+        maxOccupiedSpace = 1000000000;
     }
 
     /**
@@ -26,10 +30,6 @@ public class Storage {
      */
     public ConcurrentHashMap<String, FileData> getFilesData() {
         return filesData;
-    }
-
-    public ConcurrentHashMap<String, Chunk> getStoredChunks() {
-        return storedChunks;
     }
 
     public ConcurrentHashMap<String, Integer> getStoredChunksOccurrences() {
@@ -48,11 +48,54 @@ public class Storage {
         return storedSelfWantedChunks;
     }
 
+    public int getOccupiedSpace() {
+        return occupiedSpace;
+    }
+
+    public int getMaxOccupiedSpace() {
+        return maxOccupiedSpace;
+    }
+
     /**
      * Other Methods
      */
+
+    public void setMaxOccupiedSpace(int maxOccupiedSpace) {
+        this.maxOccupiedSpace = maxOccupiedSpace;
+    }
+
     public void addFileData(FileData fileData) {
         filesData.put(fileData.getFileId(), fileData);
+    }
+
+    public synchronized Chunk getStoredChunk(String chunkID){
+        return storedChunks.get(chunkID);
+    }
+
+    public synchronized boolean deleteStoredChunk(String chunkID){
+        Chunk removedChunk = storedChunks.remove(chunkID);
+        if (removedChunk != null){
+            occupiedSpace -= removedChunk.getSize();
+            return true;
+        }
+        return false;
+    }
+
+    public synchronized boolean addStoredChunk(Chunk chunk){
+        Chunk previousChunk = storedChunks.get(chunk.getIdentifier());
+        int deltaSpace = 0;
+        if (previousChunk != null){
+            deltaSpace -= previousChunk.getSize();
+        }
+        deltaSpace += chunk.getSize();
+
+        if (deltaSpace + occupiedSpace > maxOccupiedSpace)
+            return false;
+
+        storedChunks.put(chunk.getIdentifier(), chunk);
+        occupiedSpace += deltaSpace;
+
+        return true;
     }
 
 }
