@@ -31,7 +31,7 @@ public class Peer implements RMI {
     /**
      * Constructor
      */
-    Peer(int peerId, int version) {
+    Peer(int peerId, int version, String MCAddress, int MCPort, String MDBAddress, int MDBPort, String MDRAddress, int MDRPort) {
         this.peerId = peerId;
         if (version == 1) {
             this.version = "1.0";
@@ -47,9 +47,9 @@ public class Peer implements RMI {
         executor = Executors.newScheduledThreadPool(150);
 
         try {
-            this.controlChannel = new ControlChannel(this, "224.0.1.0", 9998);
-            this.backupChannel = new BackupChannel(this, "224.0.0.1", 9999);
-            this.restoreChannel = new RestoreChannel(this, "224.0.0.2", 9997);
+            this.controlChannel = new ControlChannel(this, MCAddress, MCPort);
+            this.backupChannel = new BackupChannel(this, MDBAddress, MDBPort);
+            this.restoreChannel = new RestoreChannel(this, MDRAddress, MDRPort);
 
             executor.execute(this.controlChannel);
             executor.execute(this.backupChannel);
@@ -119,22 +119,30 @@ public class Peer implements RMI {
     /**
      * Main
      */
-    public static void main(String[] args) throws RemoteException {
+    public static void main(String[] args) {
         int version;
 
-        if (args.length == 1) {
-            version = Integer.parseInt(args[0]);
-            if (version != 1 && version != 2) {
-                System.out.println("ERROR: Peer arguments invalid: Version(1 or 2)");
-                return;
-            }
-        } else {
+        if (args.length != 8){
+            System.out.println("Format invalid, please try again.");
+            System.out.println("Format: Peer <version> <n_peers> <MC_address> <MC_port> <MDB_address> <MDB_port> <MDR_address> <MDR_port>");
+        }
+
+        version = Integer.parseInt(args[0]);
+        if (version != 1 && version != 2) {
             System.out.println("ERROR: Peer arguments invalid: Version(1 or 2)");
             return;
         }
 
-        for (int i = 1; i <= 4; i++) {
-            new Peer(i, version);
+        int nPeers = Integer.parseInt(args[1]);
+        String MCAddress = args[2];
+        int MCPort = Integer.parseInt(args[3]);
+        String MDBAddress = args[4];
+        int MDBPort = Integer.parseInt(args[5]);
+        String MDRAddress = args[6];
+        int MDRPort = Integer.parseInt(args[7]);
+
+        for (int i = 1; i <= nPeers; i++) {
+            new Peer(i, version, MCAddress, MCPort, MDBAddress, MDBPort, MDRAddress, MDRPort);
         }
 
     }
