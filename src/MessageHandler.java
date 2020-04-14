@@ -74,7 +74,7 @@ public class MessageHandler implements Runnable {
 
             if (this.peer.getStorage().getStoredChunk(fileName) != null &&
                     (this.peer.getStorage().getStoredChunksOccurrences().get(fileName)
-                    < this.peer.getStorage().getStoredChunk(fileName).getReplicationDegree())){
+                            < this.peer.getStorage().getStoredChunk(fileName).getReplicationDegree())) {
 
                 this.peer.getStorage().getHandleLowOccurences().put(fileName, true);
 
@@ -104,7 +104,7 @@ public class MessageHandler implements Runnable {
                         TimeUnit.MILLISECONDS.sleep((long) (Math.random() * 400));
                         this.peer.getControlChannel().sendMessage(header.getBytes());
                     }
-                } catch (InterruptedException e){
+                } catch (InterruptedException e) {
                     e.printStackTrace();
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -149,11 +149,11 @@ public class MessageHandler implements Runnable {
         Chunk receivedChunk = new Chunk(arguments.get(3), Integer.parseInt(arguments.get(4)),
                 Integer.parseInt(arguments.get(5)), body.length);
 
-        if (this.peer.getStorage().getFilesData().get(receivedChunk.getFileId()) != null){ // peer shouldn't store its own files
+        if (this.peer.getStorage().getFilesData().get(receivedChunk.getFileId()) != null) { // peer shouldn't store its own files
             return;
         }
 
-        if (!this.peer.getStorage().addStoredChunk(receivedChunk)){  // no space for chunk
+        if (!this.peer.getStorage().addStoredChunk(receivedChunk)) {  // no space for chunk
             return;
         }
 
@@ -245,7 +245,8 @@ public class MessageHandler implements Runnable {
                             outputStream.write(body);
                             outputStream.close();
                             socket.close();
-                        } catch (IOException ignored) {
+                        } catch (IOException e) {
+                            e.printStackTrace();
                         }
                     }
                 }
@@ -266,43 +267,22 @@ public class MessageHandler implements Runnable {
 
 
         if (this.peer.getStorage().getSelfPeerWantedChunks().get(fileName)) {
-            String filePath = peer.getPeerId() + "/wanted/" + fileName;
-            File tmp = new File(filePath);
-            tmp.getParentFile().mkdirs();
+            this.peer.getStorage().getSelfPeerWantedChunks().put(fileName, false);
 
-            byte[] buf = new byte[64000];
-            int count = 0;
+            if (this.peer.getVersion().equals("1.0")) {
+                String filePath = peer.getPeerId() + "/wanted/" + fileName;
+                File tmp = new File(filePath);
+                tmp.getParentFile().mkdirs();
 
-            if(this.peer.getVersion().equals("2.0")){
                 try {
-                    TimeUnit.MILLISECONDS.sleep(200);
-                } catch (InterruptedException e) {
+                    tmp.createNewFile();
+                    FileOutputStream writeToFile = new FileOutputStream(tmp);
+                    writeToFile.write(parseBody());
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
-
-                while (count == 0) {
-                    try {
-                        count = this.peer.getInputStream().read(buf);
-                        this.peer.getInputStream().close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
             }
 
-            try {
-                tmp.createNewFile();
-                FileOutputStream writeToFile = new FileOutputStream(tmp);
-                if(this.peer.getVersion().equals("1.0")){
-                    writeToFile.write(parseBody());
-                }else {
-                    writeToFile.write(buf, 0, count);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            this.peer.getStorage().getSelfPeerWantedChunks().put(fileName, false);
             this.peer.getStorage().getStoredSelfWantedChunks().put(fileName, true);
         }
     }

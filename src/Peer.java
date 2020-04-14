@@ -308,17 +308,31 @@ public class Peer implements RMI {
 
                 if (this.version.equals("2.0")) {
                     try {
+                        String filePathAux = this.peerId + "/wanted/" + fileData.getChunks().get(i).getIdentifier();
+                        File tmp = new File(filePathAux);
+                        tmp.getParentFile().mkdirs();
+
                         this.socket = this.serverSocket.accept();
                         this.socket.setReuseAddress(true);
                         this.inputStream = this.socket.getInputStream();
+
+                        byte[] buf = new byte[64000];
+                        int count = this.inputStream.read(buf);
+
+                        tmp.createNewFile();
+                        FileOutputStream writeToFile = new FileOutputStream(tmp);
+                        writeToFile.write(buf, 0, count);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-
-                    while (this.getStorage().getSelfPeerWantedChunks().get(fileData.getChunks().get(i).getIdentifier())) {
-                    }
                 }
             }
+        }
+
+        try {
+            TimeUnit.MILLISECONDS.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
 
         if (this.version.equals("2.0")) {
@@ -328,12 +342,6 @@ public class Peer implements RMI {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }
-
-        try {
-            TimeUnit.MILLISECONDS.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         }
 
         boolean allAvailable = true;
