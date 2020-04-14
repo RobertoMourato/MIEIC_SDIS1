@@ -49,13 +49,30 @@ public class MessageHandler implements Runnable {
                 handleDelete();
                 break;
             case "REMOVED":
-                System.out.println("REMOVED");
+                System.out.println("REMOVED " + this.peer.getPeerId());
+                handleRemove();
                 break;
             default:
                 System.out.println("ERROR");
                 System.out.println(parameters[1]);
                 break;
         }
+    }
+
+    void handleRemove() {
+
+        List<String> arguments = parseMessage(true, false);
+
+        String fileName = arguments.get(3) + "_" + arguments.get(4);
+
+        if (this.peer.getStorage().getStoredChunksOccurrences().get(fileName) != null) {
+            this.peer.getStorage().getStoredChunksOccurrences().put(fileName,
+                    Math.max(this.peer.getStorage().getStoredChunksOccurrences().get(fileName) - 1, 0)); // 0 as lower bound just in case
+
+            System.out.println(this.peer.getPeerId() + " " + fileName + " " +
+                    this.peer.getStorage().getStoredChunksOccurrences().get(fileName));
+        }
+
     }
 
     void handleDelete() {

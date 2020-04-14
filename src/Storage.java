@@ -48,6 +48,10 @@ public class Storage {
         return storedSelfWantedChunks;
     }
 
+    public ConcurrentHashMap<String, Chunk> getStoredChunks() {
+        return storedChunks;
+    }
+
     public int getOccupiedSpace() {
         return occupiedSpace;
     }
