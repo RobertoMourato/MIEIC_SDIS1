@@ -1,4 +1,4 @@
-#! /usr/bin/bash
+# #! /usr/bin/bash
 
 # Placeholder for clean-up script
 # To be executed in the root of the build tree

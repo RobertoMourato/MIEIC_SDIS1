@@ -1,4 +1,4 @@
-#! /usr/bin/bash
+# #! /usr/bin/bash
 
 # Basic compilation script
 # To be executed in the root of the package (source code) hierarchy

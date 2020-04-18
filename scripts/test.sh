@@ -1,4 +1,4 @@
-#! /usr/bin/bash
+# #! /usr/bin/bash
 
 # Script for running the test app
 # To be run at the root of the compiled tree

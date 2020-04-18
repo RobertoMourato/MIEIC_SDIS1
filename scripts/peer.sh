@@ -1,4 +1,4 @@
-#! /usr/bin/bash
+# #! /usr/bin/bash
 
 # Script for running a peer
 # To be run in the root of the build tree

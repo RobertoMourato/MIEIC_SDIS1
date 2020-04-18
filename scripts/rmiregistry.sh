@@ -1,4 +1,4 @@
-#! /usr/bin/bash
+# #! /usr/bin/bash
 
 # Script for starting up the rmiregistry
 # Checks if there is one argument (other than the name)
